@@ -1,5 +1,7 @@
 # Stratagent
 
+[![Tests](https://github.com/etrkk5/stratagent/actions/workflows/tests.yml/badge.svg)](https://github.com/etrkk5/stratagent/actions/workflows/tests.yml)
+
 **A reviewable supply chain for agent skills.**
 
 Describe what you are building. Discover relevant skills and sub-agent definitions on GitHub, inspect their source and policy findings, and assemble approved configurations for Claude Code, Codex and portable Agent Skills environments.

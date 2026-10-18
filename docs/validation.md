@@ -1,6 +1,6 @@
 # Validation — October 18–19, 2026
 
-Executed locally on macOS with Python 3.14.7. The CI configuration includes Python 3.11 and 3.14 on Linux and Python 3.14 on macOS; CI itself has not been run on GitHub.
+Executed locally on macOS with Python 3.14.7. [GitHub Actions passed](https://github.com/etrkk5/stratagent/actions/workflows/tests.yml) on Ubuntu with Python 3.11 and 3.14, and macOS with Python 3.14. Each job installed the package, passed all 52 tests, ran the offline demo and verified its generated files.
 
 The October 19 naming/language update uses `stratagent-cli`, the `stratagent` command, `.stratagent/` workspace state and `stratagent_*` MCP tool names. Documentation, original demo inputs and generated sample configurations are in English. The complete offline test suite and demo were rerun after the rename.
 
@@ -33,6 +33,6 @@ No real third-party candidate was installed, executed or launched. The tested in
 ## Remaining verification limits
 
 - Actual Claude Code/Codex runtime loading and a real MCP client/Inspector session were not executed.
-- Only Python 3.14.7 was executed locally; compatibility with 3.11+ is declared and covered by the prepared CI matrix, pending CI execution.
+- Python 3.11 and 3.14 were exercised in CI; intermediate Python versions and Windows were not tested.
 - Static checks and license text matching are conservative filters, not a proof of safety, correctness or legal compatibility.
 - Existing installation upgrades/removal, semantic LLM planning and launching coding-agent processes are outside this MVP.
