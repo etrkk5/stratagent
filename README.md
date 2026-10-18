@@ -10,7 +10,7 @@ Stratagent treats reusable agent instructions as software dependencies: **pin th
 
 The CLI-first MVP combines transparent candidate ranking, commit-pinned snapshots, repository allowlists, content-bound approval and a provenance lockfile. A read-only MCP server exposes analysis, discovery and inspection to coding environments while keeping installation authority in the local CLI.
 
-Python 3.11+. No third-party runtime dependencies, LLM API key or Git CLI required. All product documentation, CLI responses, examples and generated configurations are in English.
+Python 3.11+. No third-party runtime dependencies, LLM API key or Git CLI required.
 
 ## Why Stratagent
 

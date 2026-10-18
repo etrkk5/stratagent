@@ -2,7 +2,7 @@
 
 Executed locally on macOS with Python 3.14.7. [GitHub Actions passed](https://github.com/etrkk5/stratagent/actions/workflows/tests.yml) on Ubuntu with Python 3.11 and 3.14, and macOS with Python 3.14. Each job installed the package, passed all 52 tests, ran the offline demo and verified its generated files.
 
-The October 19 naming/language update uses `stratagent-cli`, the `stratagent` command, `.stratagent/` workspace state and `stratagent_*` MCP tool names. Documentation, original demo inputs and generated sample configurations are in English. The complete offline test suite and demo were rerun after the rename.
+Validation covers the `stratagent-cli` package, the `stratagent` command, `.stratagent/` workspace state and `stratagent_*` MCP tools.
 
 ## Automated checks
 
