@@ -1,0 +1,218 @@
+{
+  "analysis": {
+    "assumptions": [
+      "Tasks are delegated as configuration; no coding agent is launched.",
+      "Heuristic analysis is not an LLM interpretation; review the plan."
+    ],
+    "domains": [
+      "python",
+      "api",
+      "data",
+      "testing",
+      "security",
+      "agents"
+    ],
+    "method": "deterministic-keywords-v1",
+    "prompt": "Build a Python API agent for data analysis, testing and security review",
+    "search_terms": [
+      "python",
+      "api",
+      "data",
+      "testing",
+      "security",
+      "agents"
+    ],
+    "tasks": [
+      {
+        "acceptance": [
+          "Document scope, inputs, outputs and trust boundaries."
+        ],
+        "agent": "architect",
+        "depends_on": [],
+        "id": "design",
+        "title": "Define interfaces and acceptance criteria"
+      },
+      {
+        "acceptance": [
+          "A local example satisfies the project request."
+        ],
+        "agent": "implementer",
+        "depends_on": [
+          "design"
+        ],
+        "id": "build",
+        "title": "Implement the smallest working vertical slice"
+      },
+      {
+        "acceptance": [
+          "Check successful, invalid-input and offline cases."
+        ],
+        "agent": "test-reviewer",
+        "depends_on": [
+          "build"
+        ],
+        "id": "test",
+        "title": "Verify behavior and failure paths"
+      },
+      {
+        "acceptance": [
+          "Report concrete risks with evidence and remediation."
+        ],
+        "agent": "security-reviewer",
+        "depends_on": [
+          "design"
+        ],
+        "id": "security",
+        "title": "Review trust boundaries, dependencies and licenses"
+      },
+      {
+        "acceptance": [
+          "Tests pass and README reproduces the demo."
+        ],
+        "agent": "maintainer",
+        "depends_on": [
+          "test",
+          "security"
+        ],
+        "id": "release",
+        "title": "Integrate reviewed changes and document local use"
+      }
+    ]
+  },
+  "candidates": {
+    "b8c2dcd75801bab3": {
+      "commit": "dddddddddddddddddddddddddddddddddddddddd",
+      "description": "Review Python API testing and regression coverage.",
+      "eligible": true,
+      "entry": "agents/test-reviewer.md",
+      "files": [
+        {
+          "git_sha": "a2886ea6957586704bb2e79e3036a975fde25a99",
+          "path": "LICENSE",
+          "sha256": "71b6cd3f419ca98a142b278623101daea767c754d13506bbd42ca3a90f824f4e",
+          "size": 1080
+        },
+        {
+          "git_sha": "acbe6d9d74b83da761669be6159508cffd795b97",
+          "path": "agents/test-reviewer.md",
+          "sha256": "98a37ada341aed1315cf010979fb6b613c1bc6aadb756ccb177292f4c8d72a78",
+          "size": 188
+        }
+      ],
+      "findings": [
+        {
+          "detail": "Static rules cannot establish safety. Read every file before approval.",
+          "path": "agents/test-reviewer.md",
+          "rule": "untrusted-instructions",
+          "severity": "review"
+        }
+      ],
+      "id": "b8c2dcd75801bab3",
+      "kind": "subagent",
+      "license": "MIT",
+      "name": "test-reviewer",
+      "origin": "demo-offline",
+      "quality": {
+        "body_words": 9,
+        "metadata_valid": true,
+        "note": "Documentation structure signals only; correctness has not been executed or proven.",
+        "structured_sections": 0,
+        "supporting_documents": 0
+      },
+      "ranking": {
+        "components": {
+          "license": 15,
+          "popularity": 0.0,
+          "relevance": 22.5,
+          "static_policy": 20,
+          "structure": 5
+        },
+        "matched_terms": [
+          "api",
+          "python",
+          "testing"
+        ],
+        "note": "Heuristic ranking; popularity is not a trust signal.",
+        "score": 62.5
+      },
+      "repo": "stratagent-demo/original-examples",
+      "review_digest": "a78a7dbc071073f7f11868aaf8085e454930e5918396789143b8ac5f5da38ade",
+      "scanner_version": 1
+    },
+    "e16801d41911c722": {
+      "commit": "dddddddddddddddddddddddddddddddddddddddd",
+      "description": "Review Python API testing and security boundaries.",
+      "eligible": true,
+      "entry": "skills/python-review/SKILL.md",
+      "files": [
+        {
+          "git_sha": "a2886ea6957586704bb2e79e3036a975fde25a99",
+          "path": "LICENSE",
+          "sha256": "71b6cd3f419ca98a142b278623101daea767c754d13506bbd42ca3a90f824f4e",
+          "size": 1080
+        },
+        {
+          "git_sha": "d149b6a508f9d409ca8b8ce3950f361a1a314f20",
+          "path": "skills/python-review/SKILL.md",
+          "sha256": "1f316a7b9d8a7ea277fc27f244e3a0934dc8aa4e0052939b305115b6e3c99426",
+          "size": 222
+        },
+        {
+          "git_sha": "71dc6bc955554033133b582afc101a0ac134c701",
+          "path": "skills/python-review/references/checklist.md",
+          "sha256": "2b97a2720318bf3ece2ae584ec4b5219840a4997af30547595809f2ed24c3908",
+          "size": 84
+        }
+      ],
+      "findings": [
+        {
+          "detail": "Static rules cannot establish safety. Read every file before approval.",
+          "path": "skills/python-review/SKILL.md",
+          "rule": "untrusted-instructions",
+          "severity": "review"
+        }
+      ],
+      "id": "e16801d41911c722",
+      "kind": "skill",
+      "license": "MIT",
+      "name": "python-review",
+      "origin": "demo-offline",
+      "quality": {
+        "body_words": 12,
+        "metadata_valid": true,
+        "note": "Documentation structure signals only; correctness has not been executed or proven.",
+        "structured_sections": 0,
+        "supporting_documents": 1
+      },
+      "ranking": {
+        "components": {
+          "license": 15,
+          "popularity": 0.0,
+          "relevance": 37.5,
+          "static_policy": 20,
+          "structure": 5
+        },
+        "matched_terms": [
+          "api",
+          "data",
+          "python",
+          "security",
+          "testing"
+        ],
+        "note": "Heuristic ranking; popularity is not a trust signal.",
+        "score": 77.5
+      },
+      "repo": "stratagent-demo/original-examples",
+      "review_digest": "8d90a61ed8168c24e5cd95ba7c503d36f755a60446808d61c7d89f90438037ec",
+      "scanner_version": 1
+    }
+  },
+  "created_at": "2026-10-18T21:01:08.668952+00:00",
+  "name": "Stratagent workspace",
+  "platforms": [
+    "claude",
+    "codex",
+    "generic"
+  ],
+  "schema_version": 1
+}

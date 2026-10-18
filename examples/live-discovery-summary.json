@@ -1,0 +1,44 @@
+{
+  "validated_at": "2026-10-18",
+  "mode": "read-only",
+  "partial_due_to_rate_limit": true,
+  "candidates": [
+    {
+      "id": "41316910ce87fc88",
+      "repo": "openai/skills",
+      "commit": "49f948faa9258a0c61caceaf225e179651397431",
+      "entry": "skills/.curated/security-best-practices/SKILL.md",
+      "eligible": false,
+      "license": "Apache-2.0",
+      "quality": {
+        "body_words": 1378,
+        "metadata_valid": true,
+        "note": "Documentation structure signals only; correctness has not been executed or proven.",
+        "structured_sections": 16,
+        "supporting_documents": 11
+      },
+      "score": 52.45,
+      "blocking_rules": [
+        "non-document-file",
+        "credential-access"
+      ]
+    },
+    {
+      "id": "5b736a7320ffc0d4",
+      "repo": "voltagent/awesome-claude-code-subagents",
+      "commit": "408d3c9eee2d0c75c12a3abb5de29e53c2ca6b9e",
+      "entry": "categories/01-core-development/api-designer.md",
+      "eligible": true,
+      "license": "MIT",
+      "quality": {
+        "body_words": 770,
+        "metadata_valid": true,
+        "note": "Documentation structure signals only; correctness has not been executed or proven.",
+        "structured_sections": 146,
+        "supporting_documents": 0
+      },
+      "score": 81.41,
+      "blocking_rules": []
+    }
+  ]
+}

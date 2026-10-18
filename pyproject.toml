@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stratagent-cli"
+version = "0.1.0"
+description = "A reviewable supply chain for agent skills: discover, inspect and approve portable workspaces"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/etrkk5/stratagent"
+Repository = "https://github.com/etrkk5/stratagent"
+Issues = "https://github.com/etrkk5/stratagent/issues"
+Documentation = "https://github.com/etrkk5/stratagent#readme"
+
+[project.scripts]
+stratagent = "stratagent.cli:main"
+
+[tool.setuptools]
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+stratagent = ["data/*.json"]
