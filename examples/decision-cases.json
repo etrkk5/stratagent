@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "note": "Original bounded acceptance cases, not a general semantic reasoning benchmark.",
+  "cases": [
+    {"id": "small-turkish-offline", "prompt": "Küçük bir Python API. Ödeme istemiyorum. Çevrimdışı testler gerekli.", "strategy": "focused", "statuses": {"payments": "excluded", "offline": "required"}, "absent_roles": ["frontend", "api", "database"]},
+    {"id": "english-exclusion", "prompt": "Small Python API without payments; authentication required.", "strategy": "focused", "statuses": {"payments": "excluded", "authentication": "required"}},
+    {"id": "full-stack-boundaries", "prompt": "React frontend and FastAPI backend with PostgreSQL. Privacy and accessibility required.", "strategy": "specialist", "statuses": {"privacy": "required", "accessibility": "required"}, "present_roles": ["frontend", "api", "database"]},
+    {"id": "optional-scope", "prompt": "Payments are optional; privacy required.", "strategy": "focused", "statuses": {"payments": "uncertain", "privacy": "required"}},
+    {"id": "contradictory-scope", "prompt": "No payments. Payments are required.", "strategy": "focused", "statuses": {"payments": "conflicting"}},
+    {"id": "excluded-frontend", "prompt": "No frontend. Python API with PostgreSQL.", "strategy": "specialist", "statuses": {}, "absent_roles": ["frontend"], "present_roles": ["api", "database"]},
+    {"id": "deferred-payment-mvp", "prompt": "React and FastAPI for a small MVP with payments later.", "strategy": "focused", "statuses": {"payments": "deferred"}, "absent_roles": ["frontend", "api"]},
+    {"id": "postfix-negation", "prompt": "Python API. Payments are not required. Login required.", "strategy": "focused", "statuses": {"payments": "excluded", "authentication": "required"}},
+    {"id": "turkish-qualified-object", "prompt": "Basit API. Ödeme entegrasyonu istemiyorum. KVKK gerekli.", "strategy": "focused", "statuses": {"payments": "excluded", "privacy": "required"}},
+    {"id": "mixed-positive-negative", "prompt": "Payments required and authentication not required.", "strategy": "focused", "statuses": {"payments": "required", "authentication": "excluded"}}
+  ]
+}

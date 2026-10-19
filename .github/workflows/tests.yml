@@ -21,5 +21,9 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: python -m pip install .
       - run: python -m unittest discover -s tests -v
+      - run: stratagent plan "FastAPI and React dashboard with authentication and privacy" --workspace examples/projects/saas --scan-project
       - run: stratagent demo --workspace /tmp/stratagent-ci-demo --apply
       - run: stratagent verify --workspace /tmp/stratagent-ci-demo
+      - run: stratagent init "Small Python API without payments" --workspace /tmp/stratagent-blueprint-ci --platforms generic
+      - run: stratagent decision-request --workspace /tmp/stratagent-blueprint-ci
+      - run: stratagent blueprint --workspace /tmp/stratagent-blueprint-ci --content

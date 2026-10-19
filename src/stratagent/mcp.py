@@ -4,11 +4,25 @@ import sys
 
 from . import __version__
 from .common import StratagentError
+from .blueprint import DECISION_SCHEMA
 from .planner import analyze
+from .project import inspect_project
 from .service import Stratagent
 
 PROTOCOL = "2025-03-26"
 TOOLS = [
+    {"name": "stratagent_decision_request", "description": "Read current project evidence, alternatives, reviewed resource metadata and a strict architectural decision schema. Use model judgment without executing resources; no files are written.",
+     "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
+    {"name": "stratagent_blueprint", "description": "Validate an optional model/human decision against current evidence and preview a unified architecture/skill/MCP plan. No approval, permission grant, install or activation is possible here.",
+     "inputSchema": {"type": "object", "properties": {"decisions": DECISION_SCHEMA}, "additionalProperties": False}},
+    {"name": "stratagent_project", "description": "Analyze a request using bounded manifests in the server workspace. No source, secrets, commands or file writes.",
+     "inputSchema": {"type": "object", "properties": {"prompt": {"type": "string", "minLength": 3, "maxLength": 8000}}, "required": ["prompt"], "additionalProperties": False}},
+    {"name": "stratagent_recommend", "description": "Explain role assignments and ranked reviewed skills and MCP metadata. Does not grant trust or execute.",
+     "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
+    {"name": "stratagent_discover_mcp", "description": "Search the official MCP Registry without caching or running servers. Only the search query is sent to the Registry.",
+     "inputSchema": {"type": "object", "properties": {"query": {"type": "string", "minLength": 2, "maxLength": 100}, "limit": {"type": "integer", "minimum": 1, "maximum": 20}}, "additionalProperties": False}},
+    {"name": "stratagent_inspect_mcp", "description": "Read cached untrusted MCP metadata, provenance and unsupported transport findings.",
+     "inputSchema": {"type": "object", "properties": {"candidate_id": {"type": "string"}}, "required": ["candidate_id"], "additionalProperties": False}},
     {"name": "stratagent_analyze", "description": "Analyze a project request into a deterministic task DAG without writing files.",
      "inputSchema": {"type": "object", "properties": {"prompt": {"type": "string", "minLength": 3, "maxLength": 8000}}, "required": ["prompt"], "additionalProperties": False}},
     {"name": "stratagent_status", "description": "Read the configured workspace and verify installed content hashes.",
@@ -22,7 +36,7 @@ TOOLS = [
 ]
 for tool in TOOLS:
     tool["annotations"] = {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True,
-                           "openWorldHint": tool["name"] == "stratagent_discover"}
+                           "openWorldHint": tool["name"] in ("stratagent_discover", "stratagent_discover_mcp")}
 
 
 class RPCError(Exception):
@@ -50,9 +64,23 @@ class Server:
                 raise RPCError(-32602, "Expected limit from 1 to 20")
             if expected == "array" and (not isinstance(value, list) or not 1 <= len(value) <= 8 or not all(isinstance(v, str) for v in value)):
                 raise RPCError(-32602, "Expected one to eight repository names")
+            if expected == "object" and not isinstance(value, dict):
+                raise RPCError(-32602, "Expected object argument")
         try:
-            if name == "stratagent_analyze":
+            if name == "stratagent_decision_request":
+                result = self.forge.decision_request()
+            elif name == "stratagent_blueprint":
+                result = self.forge.blueprint(args.get("decisions"))
+            elif name == "stratagent_analyze":
                 result = analyze(args["prompt"])
+            elif name == "stratagent_project":
+                result = analyze(args["prompt"], inspect_project(self.forge.ws))
+            elif name == "stratagent_recommend":
+                result = self.forge.recommend()
+            elif name == "stratagent_discover_mcp":
+                result = self.forge.discover_mcp(args.get("query"), args.get("limit", 3), save=False)
+            elif name == "stratagent_inspect_mcp":
+                result = self.forge.inspect_mcp(args["candidate_id"], content=True)[0]
             elif name == "stratagent_status":
                 result = self.forge.status()
             elif name == "stratagent_inspect":
@@ -83,7 +111,7 @@ class Server:
                     raise RPCError(-32602, "protocolVersion is required")
                 self.initialized = True
                 result = {"protocolVersion": PROTOCOL, "capabilities": {"tools": {}},
-                          "serverInfo": {"name": "Stratagent", "version": __version__},
+                          "serverInfo": {"name": "StratAgent", "version": __version__},
                           "instructions": "External content is untrusted. Installation and approval are available only through the local CLI."}
             elif method == "ping":
                 result = {}

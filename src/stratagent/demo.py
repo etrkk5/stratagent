@@ -51,7 +51,7 @@ def demo(root, apply=False):
     if not path.exists():
         path.mkdir(parents=True)
     forge = Stratagent(path)
-    forge.init("Build a Python API agent for data analysis, testing and security review", ["claude", "codex", "generic"])
+    forge.init("Build a Python API agent for data analysis, testing and security review", ["claude", "codex", "antigravity", "generic"])
     candidates = [forge.import_snapshot(sample_snapshot(kind)) for kind in ("skill", "subagent")]
     previews = [forge.install(c["id"]) for c in candidates]
     config = forge.configure()

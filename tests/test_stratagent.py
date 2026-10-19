@@ -41,7 +41,7 @@ class PlanningTests(unittest.TestCase):
         for task in result["tasks"]:
             self.assertTrue(set(task["depends_on"]) <= seen)
             seen.add(task["id"])
-        self.assertEqual(result["method"], "deterministic-keywords-v1")
+        self.assertEqual(result["method"], "constraint-evidence-v3")
 
     def test_prompt_limits(self):
         for prompt in (" ", "xx", "x" * 8001, None):

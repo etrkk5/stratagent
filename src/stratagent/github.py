@@ -10,6 +10,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
 from urllib.request import HTTPRedirectHandler, HTTPSHandler, Request, build_opener
 
+from . import __version__
 from .common import StratagentError, MAX_BUNDLE, MAX_FILE, MAX_FILES, SHA, git_blob, repository, safe_path
 from .security import NOTICE_NAMES
 
@@ -22,7 +23,7 @@ class GitHubLimitError(StratagentError):
 
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        raise StratagentError("GitHub API redirect refused; use the canonical repository name.")
+        raise StratagentError("HTTPS API redirect refused; use the canonical source.")
 
 
 class GitHub:
@@ -56,7 +57,7 @@ class GitHub:
             self.halted = "GitHub request budget exhausted; narrow discovery with --repo/--limit."
             raise GitHubLimitError(self.halted)
         self.remaining -= 1
-        headers = {"Accept": "application/vnd.github+json", "User-Agent": "Stratagent/0.1.0",
+        headers = {"Accept": "application/vnd.github+json", "User-Agent": "StratAgent/" + __version__,
                    "X-GitHub-Api-Version": "2022-11-28"}
         if self.token:
             headers["Authorization"] = "Bearer " + self.token

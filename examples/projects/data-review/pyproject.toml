@@ -1,0 +1,7 @@
+[project]
+name = "stratagent-data-review-example"
+version = "0.0.0"
+dependencies = ["pandas"]
+
+[project.optional-dependencies]
+test = ["pytest"]

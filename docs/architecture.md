@@ -1,44 +1,75 @@
-# MVP architecture
+# StratAgent architecture
 
-The workspace started empty, without Git metadata or synced source files. All implementation lives in this independent `stratagent/` directory; the parent `sources/` directory remains untouched.
+The CLI and read-only MCP surface share a service layer. Version 0.3 adds a provider-independent structured decision contract and a unified workspace blueprint to the commit-pinned skill, project inspection and official Registry metadata workflows.
 
 ```mermaid
 flowchart LR
     CLI[CLI / JSON] --> Service[Shared application service]
     MCP[Read-only MCP stdio] --> Service
-    Service --> Planner[Keyword analysis + task DAG]
+    Service --> Project[Bounded local dependency manifests]
+    Project --> Planner[Evidence analysis + specialist task DAG]
+    Service --> Planner
+    Service --> Registry[Official MCP Registry metadata]
+    Registry --> MetadataReview[Status / transport / static description review]
+    MetadataReview --> Proposal[Exact approval + inert host proposals]
     Service --> GitHub[Read-only GitHub API]
     GitHub --> Snapshot[Pinned commit + verified blobs]
     Snapshot --> Review[Metadata / license / security / ranking]
     Review --> Cache[Inert snapshot + manifest]
     Cache --> Preview[Deterministic output plan]
     Preview --> Gate[Repository allowlist + exact hash approval]
-    Gate --> Adapters[Claude / Codex / generic renderers]
+    Gate --> Adapters[Claude / Codex / Antigravity / generic renderers]
     Adapters --> Lock[Exclusive writes + provenance lockfile]
 ```
 
 ## Boundaries
 
-`planner.py` has no IO. It maps bilingual domain keywords into search terms and a five-task dependency graph. It clearly identifies its method as deterministic.
+`project.py` reads only named dependency manifests at the root and in bounded `apps/*`/`packages/*` directories. It retains recognized dependency names, file hashes and evidence paths, not commands, private dependency names or raw manifest text. Warnings disclose incomplete or unsafe inputs. It never executes package scripts, follows symlinks or reads `.env`/source files.
+
+`planner.py` has no IO. It maps bilingual domain and requirement evidence into specialist roles, acceptance criteria, explicit handoffs, open questions and topological parallel waves. Security review depends on the build, not just design. It clearly identifies the deterministic method and its negation/ambiguity limitations.
 
 `github.py` uses fixed-host HTTPS GET requests with timeouts, budgets, no redirects and sanitized errors. Discovery resolves a branch once to a commit and tree. Every downloaded file must match its pinned Git blob identity. Git archives, clone hooks, repository scripts and remote package managers are never used.
 
+`registry.py` performs one bounded fixed-host HTTPS GET to the official MCP Registry v0.1 API. Reviews bind the full response metadata, Registry-managed lifecycle status, name/version, normalized transport options and static findings. No arbitrary endpoint or package registry is contacted. Only exact-version npm stdio without runtime customizations and public HTTPS Streamable HTTP without credentials/templates produce inert proposals. npm proposals also need an allowed GitHub source repository. Metadata review does not audit package artifacts, server source, tool permissions or licenses. Remote behavior is mutable; publication is not an endorsement.
+
 `security.py` validates paths, text encoding, sizes, modes, metadata, license notices and static risk signals. It produces a canonical review digest bound to origin, immutable source identities, content hashes and findings. All candidates still require human review.
 
-`service.py` owns initialization, discovery, review, role recommendations, local allowlist, install/configuration previews, approval, provenance and verification. Cache is inert JSON/base64. No candidate is installed by discovery. Only matching, explicitly installed candidates are bound into generated tasks.
+`service.py` owns initialization, discovery, review, role recommendations, local allowlist, install/configuration previews, approval, provenance and verification. It recomputes current manifest evidence before planning instead of trusting editable saved task definitions. Project changes invalidate a stale configuration approval. Caches are inert JSON/base64 (skills) or JSON (Registry metadata). No candidate is installed by discovery. Only matching, explicitly installed skills are bound into generated tasks. MCP proposals use the same approval/write/lock machinery but stay under `.stratagent/proposals`, outside host auto-discovery.
 
-`adapters.py` is a pure renderer. Skill references remain relative. Provider-specific frontmatter is stripped, Claude roles are constrained to read-only exploration, and Codex roles become Agent Skills. No host config is overwritten. Adapter output hashes are part of approval.
+`adapters.py` is a pure renderer. Skill references remain relative. Provider-specific frontmatter is stripped; Claude and Antigravity native roles are constrained to read-only exploration, and Codex roles become Agent Skills. Codex and Antigravity share `.agents/skills` and deduplicate identical outputs in combined plans. Antigravity native roles use `.agents/agents`; MCP proposals are disabled and use its `serverUrl` schema. No host config is overwritten. Adapter output hashes and explicit platform targets are part of approval, including when target sets share identical skill paths/content.
 
 `workspace.py` enforces safe relative paths, refuses symlink components, serializes writes using a local directory lock, writes state files atomically, and rolls back newly created output files on ordinary failures. It assumes a trusted local filesystem/user and does not claim resistance to hostile concurrent directory replacement or power-loss atomicity across the entire transaction.
 
 `mcp.py` is a narrow stdio adapter around the same read-only services. It has no install, approve, allow or arbitrary-path tool. A coding agent cannot use this server to grant itself workspace installation permission.
 
+`cli.py` emits JSON results on stdout, optional structured command events on stderr, and safe error objects/exit codes. `--content` adds exact rendered text to dry-runs for review. Command events omit prompt, source text, credentials and paths. stdio serving preserves protocol-only stdout.
+
+## Host adapter contract
+
+`hosts.py` is the trusted integration boundary. Each frozen `HostAdapter` specifies a stable ID, skill root, optional native-agent root/header, and optional pure MCP proposal renderer. Its capability description distinguishes native role definitions from portable role skills and reports whether host-specific MCP proposals exist. The built-in catalog is immutable during normal execution. `stratagent platforms` exposes it without requiring a workspace.
+
+`adapters.py` renders common skill/task content using this contract. `registry.py` reviews common MCP source metadata and delegates only host serialization. `service.py` obtains approved resource references through adapter ownership rather than recognizing vendor paths. The planner, shared primitives, application service and Registry client contain no host-name or host-directory conditionals. The canonical project analysis is identical for different target selections; role instructions, permissions and MCP field names belong to the adapter boundary.
+
+To add a host, define a trusted adapter in the package catalog, document its actual capabilities, and add format/security/approval tests plus a disposable-client loading check. No changes to the project planner, source security policy or approval writer should be required. A regression test adds an original example adapter through the same contract and verifies skill, role and MCP rendering without modifying those core modules. This is a code extension point, not an external plugin loader or an execution sandbox.
+
+Output merging permits identical shared files but rejects conflicting bytes at the same destination. Resource assignment includes only paths recognized by selected adapters. Target selection remains approval-bound even when shared files are identical. `generic` supplies portable Agent Skills/roles and the task plan; MCP metadata stays inspectable, but no universal host MCP settings format or portable permission enforcement is claimed. CLI defaults are maintained at the adapter/UI boundary and do not affect project reasoning.
+
+## Architectural decision pipeline
+
+`intent.py` extracts bounded, cited scope evidence and compares coordination tradeoffs. `planner.py` builds the rule-generated fallback with explicit specialist role options, selected/omitted responsibilities and a dependency graph. Neither requires a model provider or a host SDK.
+
+`blueprint.py` is pure: it builds a canonical evidence context, publishes a strict decision schema, validates an optional external proposal, resolves allowed domain/requirement interpretations, and binds eligible reviewed resource IDs to roles. Model text is data, not permission authority. Unknown fields/sources/evidence, stale context, explicit-scope contradictions, missing role bindings, blocked resources and incompatible offline selections fail closed. Quotes and references provide provenance, not a proof of model reasoning quality.
+
+`service.py` joins the interpreted decision with reviewed snapshots, hashes any reused standalone output, merges new skill/role/inert-MCP files and saves one blueprint/task-plan under one exact approval. The existing allowlist, collision refusal, write lock, rollback and verification code retain installation authority. The read-only MCP surface exposes decision context and previews only. No LLM API, package manager or third-party executable is called by this pipeline.
+
+See [decision-workflow.md](decision-workflow.md) for the current input contract, role/resource reasoning, examples and integration limits.
+
 ## State contract
 
-Every persisted JSON object has `schema_version: 1`. Unsupported versions fail closed. The manifest contains analysis, platform targets and review records. Policy contains exact normalized `owner/repo` allowlist entries. The lockfile records each approval, output hash, source commit/blob hashes, license, generator version and timestamp. Approval is not a signature; it attests only to this local user's explicit choice of an exact deterministic plan.
+Local state documents use `schema_version: 1`; unsupported manifest/lock versions fail closed. Cached external Registry JSON retains its upstream shape. The manifest contains initial analysis, platform targets and skill/MCP review records. Policy contains exact normalized `owner/repo` allowlist entries. Skill lock records contain source commit/blob hashes and licenses; MCP proposal records contain metadata digest, server version and selected transport. Both record exact approval, output hashes, generator version and timestamp. Approval is not a signature; it attests only to this local user's choice of an exact plan. `status` returns current analysis; initial analysis remains in the manifest.
 
-`review_digest` hashes the reviewed source and findings. `approval` additionally binds the absolute workspace, rendered paths/content, generator version and target configuration. A repository allowlist entry does not approve arbitrary future commits. Existing installations are immutable in this MVP: unchanged repeats verify and no-op, changed repeats refuse upgrade.
+`review_digest` hashes the reviewed source/metadata and findings, excluding project-dependent ranking so reviewed evidence can be reranked. `approval` additionally binds the absolute workspace, rendered paths/content, generator version and target configuration. A repository allowlist entry does not approve arbitrary future content. Existing installations/proposals are immutable: unchanged repeats verify and no-op, changed repeats refuse upgrade. Version 0.3 changes generator output and requires fresh approvals; there is no automatic migration.
 
 ## Extension points
 
-The service API is shared by CLI and MCP. A future semantic planner can replace `analyze` while retaining the output plan contract and approval boundaries. Additional hosts can add pure renderers without network or execution authority. Actual agent execution should be an independently authorized adapter, with sandboxing and budgets, rather than an implicit side effect of importing a skill.
+The service API is shared by CLI and MCP. An existing model or human can supply a grounded structured decision through `decision-request`/`blueprint` without binding the core to a model vendor. A direct API-backed provider or external installer can be added later with explicit data/authority boundaries; neither is currently implemented. Additional hosts add pure renderers without network or execution authority. Actual agent execution remains an independently authorized concern rather than an implicit side effect of importing a skill.
