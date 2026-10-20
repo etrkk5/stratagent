@@ -23,6 +23,9 @@ def parser():
     commands = root.add_subparsers(dest="command", required=True)
     for name, help_text in {
         "init": "Analyze a prompt and initialize a workspace (no external code)",
+        "prepare": "Turn one project idea into researched skills/MCP choices and a reviewable environment blueprint; never auto-install",
+        "research-request": "Export project context and a model-neutral runtime search-plan schema; writes nothing",
+        "research-preview": "Preview exact proposed public queries and research-only egress approval; no network or writes",
         "plan": "Analyze a prompt without writing files",
         "platforms": "List adapter capabilities and portable export support without reading a workspace",
         "decision-request": "Export grounded context and a provider-independent architectural decision schema",
@@ -44,13 +47,27 @@ def parser():
         sub = commands.add_parser(name, help=help_text)
         sub.add_argument("--workspace", default=argparse.SUPPRESS, help="Project directory (demo may create it)")
         sub.add_argument("--log-json", action="store_true", default=argparse.SUPPRESS, help="Emit structured events to stderr")
-        if name in ("init", "plan"):
+        if name in ("init", "plan", "prepare", "research-request", "research-preview"):
             sub.add_argument("prompt")
         if name == "init":
             sub.add_argument("--platforms", default=",".join(DEFAULT_TARGETS), help="Comma-separated adapter IDs; see stratagent platforms")
             sub.add_argument("--no-scan-project", action="store_true", help="Use only the prompt; skip bounded local manifest inspection")
         if name == "plan":
             sub.add_argument("--scan-project", action="store_true", help="Include bounded local manifest evidence from --workspace; writes nothing")
+        if name == "prepare":
+            sub.add_argument("--platforms", help="Comma-separated adapter IDs; existing workspace selection is preserved by default")
+            sub.add_argument("--limit", type=int, default=6, help="Total GitHub definition reviews, 1–20")
+            sub.add_argument("--repo-limit", type=int, default=12, help="Repository inspection budget, 1–20")
+            sub.add_argument("--mcp-limit", type=int, default=3, help="Metadata results per MCP query, 1–20; at most three queries")
+            sub.add_argument("--offline", action="store_true", help="Use local rules and cached reviews without network discovery")
+            sub.add_argument("--research-plan", help="Workspace-relative JSON runtime query plan from your model/human")
+            sub.add_argument("--approve-search", help="Exact research-preview hash authorizing outbound queries/budgets, not installation")
+        if name in ("research-request", "research-preview"):
+            sub.add_argument("--platforms", help="Comma-separated adapter IDs; defaults to current workspace or built-in targets")
+        if name == "research-preview":
+            sub.add_argument("--research-plan", required=True, help="Workspace-relative JSON proposal to inspect without network access")
+        if name in ("decision-request", "blueprint"):
+            sub.add_argument("--run", help="Exact research run ID; confines sources, binds freshness and rejects expiry")
         if name == "discover-mcp":
             sub.add_argument("--query", help="Public server-name search; defaults to a detected project domain")
             sub.add_argument("--limit", type=int, default=6)
@@ -63,6 +80,7 @@ def parser():
         if name == "discover":
             sub.add_argument("--repo", action="append", help="Exact owner/repo (repeatable); skips repository search")
             sub.add_argument("--limit", type=int, default=6)
+            sub.add_argument("--repo-limit", type=int, default=12, help="Repositories to inspect, 1–20; automatic search surveys up to 80 public results")
         if name in ("inspect", "install"):
             sub.add_argument("candidate_id")
         if name in ("inspect", "inspect-mcp"):
@@ -108,8 +126,16 @@ def main(argv=None):
             forge = Stratagent(args.workspace)
             if args.command == "init":
                 result = forge.init(args.prompt, args.platforms.split(","), not args.no_scan_project)
+            elif args.command == "prepare":
+                result = forge.prepare(args.prompt, args.platforms.split(",") if args.platforms is not None else None,
+                                       args.limit, args.repo_limit, args.mcp_limit, args.offline,
+                                       forge.ws.read(args.research_plan) if args.research_plan else None, args.approve_search)
+            elif args.command == "research-request":
+                result = forge.research_request(args.prompt, args.platforms.split(",") if args.platforms is not None else None)
+            elif args.command == "research-preview":
+                result = forge.preview_research(forge.ws.read(args.research_plan), args.prompt, args.platforms.split(",") if args.platforms is not None else None)
             elif args.command == "discover":
-                result = forge.discover(args.repo, args.limit)
+                result = forge.discover(args.repo, args.limit, repo_limit=args.repo_limit)
             elif args.command == "inspect":
                 result = forge.inspect(args.candidate_id, args.content)[0]
             elif args.command == "discover-mcp":
@@ -121,7 +147,7 @@ def main(argv=None):
             elif args.command == "recommend":
                 result = forge.recommend()
             elif args.command == "decision-request":
-                result = forge.decision_request()
+                result = forge.decision_request(args.run)
             elif args.command in ("install", "configure", "configure-mcp", "blueprint"):
                 if args.approve and not args.apply:
                     raise StratagentError("--approve must be used with --apply; dry-run writes nothing.")
@@ -133,7 +159,7 @@ def main(argv=None):
                     result, files = forge.preview_mcp(args.candidate_id, args.option) if args.content else (forge.configure_mcp(args.candidate_id, args.option, args.approve, args.apply), None)
                 elif args.command == "blueprint":
                     decisions = forge.ws.read(args.decisions) if args.decisions else None
-                    result, files = forge.preview_blueprint(decisions) if args.content else (forge.blueprint(decisions, args.approve, args.apply), None)
+                    result, files = forge.preview_blueprint(decisions, args.run) if args.content else (forge.blueprint(decisions, args.approve, args.apply, args.run), None)
                 else:
                     result, files = forge.preview_config() if args.content else (forge.configure(args.approve, args.apply), None)
                 if files is not None:

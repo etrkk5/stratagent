@@ -9,6 +9,10 @@ class StratagentError(Exception):
     """An actionable, safe-to-display failure."""
 
 
+class GitHubLimitError(StratagentError):
+    """Stop discovery rather than repeating requests after a global limit."""
+
+
 MAX_FILE = 256 * 1024
 MAX_BUNDLE = 2 * 1024 * 1024
 MAX_FILES = 80

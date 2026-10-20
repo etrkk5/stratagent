@@ -28,3 +28,5 @@ jobs:
       - run: stratagent init "Small Python API without payments" --workspace /tmp/stratagent-blueprint-ci --platforms generic
       - run: stratagent decision-request --workspace /tmp/stratagent-blueprint-ci
       - run: stratagent blueprint --workspace /tmp/stratagent-blueprint-ci --content
+      - run: stratagent prepare "Small Python API without payments" --workspace /tmp/stratagent-blueprint-ci --platforms generic --offline
+      - run: stratagent research-request "Small Python API without payments" --workspace /tmp/stratagent-blueprint-ci

@@ -55,6 +55,8 @@ A reusable skill can carry instructions, references, scripts, permissions and li
 
 This is an early, working release. The local fallback uses explicit rules; a provider-independent decision contract lets your current model or a human supply architectural judgment. Static checks and model proposals still require human review, and agent processes are not launched automatically.
 
+**Release status: developer preview.** A [live Codex pilot](docs/pilot-validation.md) exercised model decisions through the read-only MCP server, reviewed local approval and subsequent use of a generated portable role on a working [offline CSV example](examples/projects/inventory-review). That is a bounded integration result, not a claim of production readiness or verified runtime support across every target.
+
 ## Quick start
 
 Clone the repository and install locally:
@@ -77,6 +79,29 @@ Run directly from source without installing:
 PYTHONPATH=src python3 -m stratagent plan "Build a Python API agent for data analysis"
 PYTHONPATH=src python3 -m stratagent demo --workspace ./another-demo --apply
 ```
+
+## Start from one project idea
+
+StratAgent's goal is **idea → researched dependencies → architecture → reviewed environment**, not a fixed list of packages or two preferred repositories. Start in an existing, disposable project directory:
+
+```sh
+mkdir my-agent
+.venv/bin/stratagent prepare "React frontend and Python API with PostgreSQL and privacy" \
+  --workspace ./my-agent --platforms claude,codex,antigravity \
+  --repo-limit 12 --limit 6 --mcp-limit 3
+```
+
+`prepare` initializes project state, runs broad GitHub discovery, searches up to three relevant MCP Registry terms, caches source reviews and returns a complete blueprint preview plus `decision_request` for your current model/human. It does **not** install, allow repositories, enable servers or launch agents. Its status is `review-required`, not "environment ready." Review `errors`, source findings, `unassisted_roles`, alternative decisions and exact outputs; then use the existing blueprint approval flow. Required resources may be absent or blocked, and a simple project may need no external resource at all. The first preview uses disclosed local rules unless you subsequently supply a reviewed model/human decision.
+
+Each preparation now creates an exact `research_run.id`. Use `decision-request --run ID` and `blueprint --run ID` for subsequent review/application; run-scoped approvals cannot be reused without that run. Live runs never silently include previous cached candidates, partial live research blocks application, and research expires after 15 minutes. Offline/manual cache flows are explicitly labeled, not advertised as current live discovery.
+
+For genuinely model-planned runtime queries, use `research-request` → `research-preview` → `prepare --research-plan FILE --approve-search HASH`. Your existing model can propose new public technology names outside the fallback vocabulary; the human reviews exact outbound terms/budgets before network access. Search approval never authorizes installation. This is the research foundation, not yet the complete autonomous refinement/update engine. See [runtime-research.md](docs/runtime-research.md) and the gated [production-readiness plan](docs/production-readiness.md).
+
+GitHub discovery surveys up to **eight star-sorted queries and 80 result slots**, deduplicates public repositories and preserves coverage across skills, agent/subagent definitions and MCP-related repositories. It inspects up to **12 repositories by default, configurable to 20**. Each selected source is pinned before supported definition content is reviewed. The report distinguishes metadata found, repositories inspected, definitions discovered and candidates actually reviewed; these are not interchangeable counts. Popularity helps discover alternatives, **never proves safety or overrides policy**. Only allowlisted public vocabulary is sent in search queries, not the raw idea or private dependency names. See [discovery.md](docs/discovery.md) for limits and assurance levels.
+
+`prepare --offline` uses only local/cached evidence and makes no discovery network requests. An offline *project* requirement instead skips Registry service discovery but still permits reviewing GitHub documents during preparation. Existing workspaces retain their request and targets; a different request/target set needs a fresh workspace. Preparation writes only local state/cache, not active environment files. Sources are still untrusted, Registry metadata is not a package audit, and native host capabilities remain adapter-specific.
+
+The lower-level examples below are alternative entry points; do not initialize an already prepared workspace again.
 
 ## One reviewed workspace blueprint
 
@@ -130,7 +155,7 @@ mkdir my-agent
 .venv/bin/stratagent recommend --workspace ./my-agent
 ```
 
-Without `--repo`, discovery combines GitHub repository search with the seed catalogs `openai/skills`, `anthropics/skills` and `VoltAgent/awesome-claude-code-subagents`. Seeds are discovery sources, not trusted repositories. Search uses repository search followed by pinned Git tree/blob API calls; authenticated code search is not required. Results are bounded, not exhaustive.
+Without `--repo`, discovery uses the multi-query GitHub survey described above. The seed catalogs `openai/skills`, `anthropics/skills` and `VoltAgent/awesome-claude-code-subagents` only fill unused repository slots; they are not the discovery universe or trusted repositories. `--repo-limit 1..20` controls deep inspection, while `--limit 1..20` controls the total definition reviews. Explicit `--repo` entries skip search and must fit the repository budget. Search uses repository search followed by pinned Git tree/blob API calls; authenticated code search is not required. Results are bounded, not exhaustive.
 
 Review a candidate using its `id` from the JSON output:
 
@@ -227,7 +252,10 @@ All results are JSON. `--workspace` and `--log-json` work before or after the su
 | `blueprint --content` | Preview one architecture/resource/environment plan; `--decisions FILE` accepts a workspace-relative model/human proposal |
 | `blueprint --apply --approve HASH` | Apply the exact reviewed blueprint after resolving scope/allowlist/collision blockers |
 | `init PROMPT` | Create a manifest, empty lockfile and empty repository allowlist |
-| `discover` | Discover, pin, assess and rank GitHub definitions; cache review evidence |
+| `prepare PROMPT` | Initialize/reuse a matching workspace, research broad GitHub/MCP sources and return a reviewed-environment preview; `--offline` skips network; never applies |
+| `research-request PROMPT` | Export current project evidence and a strict model-neutral runtime query-plan schema; no model/network call |
+| `research-preview PROMPT --research-plan FILE` | Preview exact outbound query text/budgets and research-only approval; no writes or network |
+| `discover` | Survey popular project-relevant repositories, pin supported definitions and rank reviewed candidates; report coverage; `--repo-limit` bounds inspection |
 | `discover-mcp --query TERM` | Search the official MCP Registry and cache metadata reviews |
 | `inspect-mcp ID --content` | Read metadata, provenance, policy findings and transport option indexes |
 | `configure-mcp ID --option 0` | Preview inert host proposals; `--apply --approve HASH` writes only proposals |
@@ -292,7 +320,7 @@ For GitHub rate limits, narrow discovery with `--repo`/`--limit` or set `GITHUB_
 .venv/bin/stratagent serve --workspace /absolute/path/to/my-agent
 ```
 
-The server uses newline-delimited JSON-RPC over stdio with MCP protocol version `2025-03-26`. stdout contains protocol messages only. Tools are `stratagent_analyze`, `stratagent_project`, `stratagent_recommend`, `stratagent_status`, `stratagent_inspect`, `stratagent_preview`, `stratagent_discover`, `stratagent_discover_mcp`, `stratagent_inspect_mcp`, `stratagent_decision_request` and `stratagent_blueprint`. MCP discovery reads from the network without saving files. Project/decision analysis reads bounded manifests and cached evidence; tool arguments cannot redirect it elsewhere. Model proposals cannot carry install, approval or permission authority. No mutating tool is exposed.
+The server uses newline-delimited JSON-RPC over stdio with MCP protocol version `2025-03-26`. stdout contains protocol messages only. Tools are `stratagent_analyze`, `stratagent_project`, `stratagent_recommend`, `stratagent_status`, `stratagent_inspect`, `stratagent_preview`, `stratagent_discover`, `stratagent_discover_mcp`, `stratagent_inspect_mcp`, `stratagent_research_request`, `stratagent_research_preview`, `stratagent_decision_request` and `stratagent_blueprint`. MCP discovery reads from the network without saving files. Research previews do not execute outbound queries. Decision/blueprint tools accept an optional exact `run_id`. Project/decision analysis reads bounded manifests and cached evidence; tool arguments cannot redirect it elsewhere. Model proposals cannot carry search approval, installation or permission authority. No mutating tool is exposed.
 
 Adapt this example to your MCP client, replacing both paths:
 
@@ -307,7 +335,7 @@ Adapt this example to your MCP client, replacing both paths:
 }
 ```
 
-This is a generic example; StratAgent does not modify user settings. Automated tests and an installed-CLI subprocess exchange verify stdio behavior. MCP Inspector and actual Claude Code/Codex client interoperability have not been tested.
+This is a generic example; StratAgent does not modify user settings. Automated subprocess tests verify stdio behavior, and an [actual Codex CLI model pilot](docs/pilot-validation.md) exercised decision/preview/status tools and a generated portable role. MCP Inspector and actual Claude Code/Antigravity client sessions remain untested.
 
 ## Development and verification
 
@@ -334,4 +362,4 @@ Primary sources checked on October 18–19, 2026:
 - [OpenAI skills](https://github.com/openai/skills), [Anthropic skills](https://github.com/anthropics/skills) and [VoltAgent sub-agents](https://github.com/VoltAgent/awesome-claude-code-subagents)
 - [SPDX license texts](https://github.com/spdx/license-list-data); pinned reference commits/hashes are in `src/stratagent/data/license_sources.json`.
 
-StratAgent source code is MIT-licensed. Discovered resources retain their own licenses. Version 0.3 changes planner and generator output; obtain new dry-run approvals. Existing installations remain immutable and automatic migration/upgrades are not provided. Use a fresh workspace for the new generated configuration rather than editing approval-bound state by hand.
+StratAgent source code is MIT-licensed. Discovered resources retain their own licenses. Version 0.3.2 requires new dry-run approvals. Existing installations remain immutable and automatic migration/upgrades are not provided. Use a fresh workspace for changed generated configuration rather than editing approval-bound state by hand.

@@ -79,9 +79,12 @@ def validate_shape(value, schema):
     elif kind == "integer":
         if type(value) is not int or not schema["minimum"] <= value <= schema["maximum"]:
             raise StratagentError("Decision transport option is invalid.")
+    elif kind == "boolean":
+        if type(value) is not bool:
+            raise StratagentError("Expected an explicit boolean value.")
 
 
-def decision_context(analysis, skills, mcps, targets):
+def decision_context(analysis, skills, mcps, targets, research_session=None):
     evidence = [{"id": "request", "source": "user-request", "text": analysis["prompt"]}]
     evidence.extend({"id": "domain:" + entry["domain"], "source": "domain-evidence", "data": entry["evidence"]} for entry in analysis["domain_evidence"])
     evidence.extend({"id": "requirement:" + entry["id"], "source": "scope-evidence", "data": entry} for entry in analysis["requirements"])
@@ -90,6 +93,8 @@ def decision_context(analysis, skills, mcps, targets):
     evidence.extend({"id": "mcp:" + entry["id"], "source": "untrusted-registry-metadata", "review_digest": entry["review_digest"]} for entry in mcps)
     context = {"schema_version": 1, "analysis": analysis, "skills": sorted(skills, key=lambda entry: entry["id"]),
                "mcps": sorted(mcps, key=lambda entry: entry["id"]), "targets": targets, "evidence": evidence}
+    if research_session is not None:
+        context["research_session"] = research_session
     return {**context, "context_digest": identity(context)}
 
 
@@ -255,6 +260,9 @@ def interpret(context, decisions=None):
                 raise StratagentError("An offline requirement cannot select unverified Registry MCP services; offline availability needs a separately reviewed workflow.")
     blockers = [{"rule": "unresolved-scope", "requirement_id": item["id"], "detail": "Resolve contradictory or uncertain scope before applying the blueprint."}
                 for item in analysis["requirements"] if item["status"] in ("conflicting", "uncertain")]
+    session = context.get("research_session")
+    if session and session["mode"] == "live" and session["partial"]:
+        blockers.append({"rule": "incomplete-runtime-research", "detail": "Live research has errors or incomplete results. Inspect the run and repeat with an attainable scope before runtime application."})
     roles = []
     for task in analysis["tasks"]:
         binding = next(item for item in proposals if item["task_id"] == task["id"])
@@ -268,6 +276,9 @@ def interpret(context, decisions=None):
                                 "note": "Proposal only; source/tool permissions and activation require human review."})
         roles.append({**task, "binding": binding, "permissions": permissions})
     return {"schema_version": 1, "context_digest": context["context_digest"], "analysis": analysis,
+            **({"research_session": context["research_session"]} if "research_session" in context else {}),
+            "freshness": {"mode": session["mode"] if session else "unscoped-cache", "live_run": bool(session and session["mode"] == "live"),
+                          "note": "Live means observed in this bounded run, not a guarantee of future remote behavior; offline/unscoped cache is not revalidated."},
             "decision": {"strategy": analysis["coordination"]["selected"], "reason": reason,
                          "alternatives": analysis["coordination"]["alternatives"], "provenance": provenance},
             "roles": roles, "blockers": blockers, "open_questions": analysis["open_questions"],

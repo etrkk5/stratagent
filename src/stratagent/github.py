@@ -2,8 +2,10 @@
 import base64
 import json
 import os
+import re
 import ssl
 import sys
+import time
 from pathlib import Path
 from pathlib import PurePosixPath
 from urllib.error import HTTPError, URLError
@@ -11,14 +13,11 @@ from urllib.parse import quote, urlencode
 from urllib.request import HTTPRedirectHandler, HTTPSHandler, Request, build_opener
 
 from . import __version__
-from .common import StratagentError, MAX_BUNDLE, MAX_FILE, MAX_FILES, SHA, git_blob, repository, safe_path
+from .common import GitHubLimitError, StratagentError, MAX_BUNDLE, MAX_FILE, MAX_FILES, SHA, git_blob, repository, safe_path
+from .discovery import survey
 from .security import NOTICE_NAMES
 
 SEEDS = ("openai/skills", "anthropics/skills", "voltagent/awesome-claude-code-subagents")
-
-
-class GitHubLimitError(StratagentError):
-    """Stop discovery rather than repeating requests after a global limit."""
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -33,6 +32,7 @@ class GitHub:
             raise StratagentError("GITHUB_TOKEN contains invalid characters.")
         self.remaining = request_limit
         self.halted = None
+        self.deadline = time.monotonic() + 120
         context = ssl.create_default_context()
         # python.org macOS builds may ship without their optional CA bundle.
         # Use the OS CA file when available; TLS verification is never disabled.
@@ -49,12 +49,17 @@ class GitHub:
         url = "https://api.github.com" + endpoint
         if params:
             url += "?" + urlencode(params)
-        if url in self.cache:
+        immutable = bool(re.fullmatch(r"/repos/[^/]+/[^/]+/git/(?:blobs|trees)/[0-9a-f]{40}", endpoint))
+        if immutable and url in self.cache:
             return self.cache[url]
         if self.halted:
             raise GitHubLimitError(self.halted)
         if self.remaining <= 0:
             self.halted = "GitHub request budget exhausted; narrow discovery with --repo/--limit."
+            raise GitHubLimitError(self.halted)
+        remaining_time = self.deadline - time.monotonic()
+        if remaining_time <= 0:
+            self.halted = "GitHub discovery time budget exhausted; narrow discovery or retry later."
             raise GitHubLimitError(self.halted)
         self.remaining -= 1
         headers = {"Accept": "application/vnd.github+json", "User-Agent": "StratAgent/" + __version__,
@@ -62,7 +67,7 @@ class GitHub:
         if self.token:
             headers["Authorization"] = "Bearer " + self.token
         try:
-            with self.opener.open(Request(url, headers=headers), timeout=20) as response:
+            with self.opener.open(Request(url, headers=headers), timeout=min(20, remaining_time)) as response:
                 data = response.read(8 * 1024 * 1024 + 1)
                 if len(data) > 8 * 1024 * 1024:
                     raise StratagentError("GitHub response exceeds 8 MiB limit.")
@@ -86,13 +91,15 @@ class GitHub:
             raise StratagentError("Cannot reach GitHub securely. Check network access; use the offline demo to work locally.") from None
         except (ValueError, UnicodeError):
             raise StratagentError("Invalid JSON from GitHub.") from None
-        self.cache[url] = result
+        if immutable:
+            self.cache[url] = result
         return result
 
     def search(self, terms, limit=4):
-        query = " ".join(terms[:2]) + " agent skills"
-        result = self.get("/search/repositories", {"q": query, "per_page": limit, "sort": "stars"})
-        return [repository(item["full_name"]) for item in result.get("items", [])[:limit]]
+        return self.research(terms, limit)["selected_repositories"]
+
+    def research(self, terms, repo_limit=12, queries=None):
+        return survey(self, terms, repo_limit, queries)
 
     def tree(self, repo):
         repo = repository(repo)

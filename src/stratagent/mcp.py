@@ -7,14 +7,19 @@ from .common import StratagentError
 from .blueprint import DECISION_SCHEMA
 from .planner import analyze
 from .project import inspect_project
+from .research import RESEARCH_SCHEMA
 from .service import Stratagent
 
 PROTOCOL = "2025-03-26"
 TOOLS = [
-    {"name": "stratagent_decision_request", "description": "Read current project evidence, alternatives, reviewed resource metadata and a strict architectural decision schema. Use model judgment without executing resources; no files are written.",
+    {"name": "stratagent_research_request", "description": "Read project evidence and a provider-neutral runtime search-plan schema. No network, writes or approval authority.",
      "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
+    {"name": "stratagent_research_preview", "description": "Preview exact outbound query text and research-only approval digest. Queries may contain private terms; human egress review is required. This does not execute searches or approve anything.",
+     "inputSchema": {"type": "object", "properties": {"plan": RESEARCH_SCHEMA}, "required": ["plan"], "additionalProperties": False}},
+    {"name": "stratagent_decision_request", "description": "Read current project evidence, alternatives, reviewed resource metadata and a strict architectural decision schema. Use model judgment without executing resources; no files are written.",
+     "inputSchema": {"type": "object", "properties": {"run_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"}}, "additionalProperties": False}},
     {"name": "stratagent_blueprint", "description": "Validate an optional model/human decision against current evidence and preview a unified architecture/skill/MCP plan. No approval, permission grant, install or activation is possible here.",
-     "inputSchema": {"type": "object", "properties": {"decisions": DECISION_SCHEMA}, "additionalProperties": False}},
+     "inputSchema": {"type": "object", "properties": {"decisions": DECISION_SCHEMA, "run_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"}}, "additionalProperties": False}},
     {"name": "stratagent_project", "description": "Analyze a request using bounded manifests in the server workspace. No source, secrets, commands or file writes.",
      "inputSchema": {"type": "object", "properties": {"prompt": {"type": "string", "minLength": 3, "maxLength": 8000}}, "required": ["prompt"], "additionalProperties": False}},
     {"name": "stratagent_recommend", "description": "Explain role assignments and ranked reviewed skills and MCP metadata. Does not grant trust or execute.",
@@ -32,7 +37,7 @@ TOOLS = [
     {"name": "stratagent_preview", "description": "Preview exact install outputs and approval digest; does not approve or write anything.",
      "inputSchema": {"type": "object", "properties": {"candidate_id": {"type": "string"}}, "required": ["candidate_id"], "additionalProperties": False}},
     {"name": "stratagent_discover", "description": "Read GitHub repositories and rank candidates without saving, trusting or installing them. Bounded network requests.",
-     "inputSchema": {"type": "object", "properties": {"repos": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 8}, "limit": {"type": "integer", "minimum": 1, "maximum": 20}}, "additionalProperties": False}},
+     "inputSchema": {"type": "object", "properties": {"repos": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 20}, "limit": {"type": "integer", "minimum": 1, "maximum": 20}, "repo_limit": {"type": "integer", "minimum": 1, "maximum": 20}}, "additionalProperties": False}},
 ]
 for tool in TOOLS:
     tool["annotations"] = {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True,
@@ -62,15 +67,19 @@ class Server:
                 raise RPCError(-32602, "Expected string argument")
             if expected == "integer" and (not isinstance(value, int) or isinstance(value, bool) or not 1 <= value <= 20):
                 raise RPCError(-32602, "Expected limit from 1 to 20")
-            if expected == "array" and (not isinstance(value, list) or not 1 <= len(value) <= 8 or not all(isinstance(v, str) for v in value)):
-                raise RPCError(-32602, "Expected one to eight repository names")
+            if expected == "array" and (not isinstance(value, list) or not 1 <= len(value) <= 20 or not all(isinstance(v, str) for v in value)):
+                raise RPCError(-32602, "Expected one to twenty repository names")
             if expected == "object" and not isinstance(value, dict):
                 raise RPCError(-32602, "Expected object argument")
         try:
-            if name == "stratagent_decision_request":
-                result = self.forge.decision_request()
+            if name == "stratagent_research_request":
+                result = self.forge.research_request()
+            elif name == "stratagent_research_preview":
+                result = self.forge.preview_research(args["plan"])
+            elif name == "stratagent_decision_request":
+                result = self.forge.decision_request(args.get("run_id"))
             elif name == "stratagent_blueprint":
-                result = self.forge.blueprint(args.get("decisions"))
+                result = self.forge.blueprint(args.get("decisions"), run_id=args.get("run_id"))
             elif name == "stratagent_analyze":
                 result = analyze(args["prompt"])
             elif name == "stratagent_project":
@@ -88,7 +97,7 @@ class Server:
             elif name == "stratagent_preview":
                 result = self.forge.install(args["candidate_id"])
             else:
-                result = self.forge.discover(args.get("repos"), args.get("limit", 3), save=False)
+                result = self.forge.discover(args.get("repos"), args.get("limit", 3), save=False, repo_limit=args.get("repo_limit", 12))
             return {"content": [{"type": "text", "text": json.dumps(result, ensure_ascii=True)}], "isError": False}
         except (StratagentError, OSError, KeyError, TypeError, ValueError) as exc:
             message = str(exc) if isinstance(exc, StratagentError) else "Workspace data is invalid or inaccessible."

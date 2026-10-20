@@ -1,6 +1,8 @@
 # StratAgent architecture
 
-The CLI and read-only MCP surface share a service layer. Version 0.3 adds a provider-independent structured decision contract and a unified workspace blueprint to the commit-pinned skill, project inspection and official Registry metadata workflows.
+The CLI and read-only MCP surface share a service layer. Version 0.3 adds a provider-independent structured decision contract and a unified workspace blueprint to the commit-pinned skill, project inspection and official Registry metadata workflows. Version 0.3.1 adds CLI-only one-prompt preparation and broad, bounded source research.
+
+Version 0.3.2 adds the [runtime research foundation](runtime-research.md). `research.py` validates model/human public query proposals and binds a separate exact egress approval. `sessions.py` records per-run source cohorts and expiry. Live preparation does not mix older cache entries into current decisions; offline/manual cache operations remain explicitly labeled. Mutable GitHub search/repository/branch observations are not cached between requests; immutable blobs/trees may be reused. Model transport/refinement, reviewed updates/recovery and source artifact audits remain separate gates in [production-readiness.md](production-readiness.md).
 
 ```mermaid
 flowchart LR
@@ -23,6 +25,10 @@ flowchart LR
 ```
 
 ## Boundaries
+
+`preparation.py` coordinates idea analysis, broad source research, Registry metadata review and blueprint/decision previews. It can initialize state and cache reviews, but cannot allow repositories, install resources, activate servers or launch agents. A matching existing workspace is preserved; changed requests/targets require a fresh workspace. Offline preparation makes no discovery requests. Its output remains `review-required` even if there are no blockers.
+
+`discovery.py` uses whitelisted public terms to generate up to eight star-sorted GitHub queries, deduplicate public repositories and select across resource families. It reports metadata scope separately from immutable source inspection, does not load plugins, and does not treat popularity as trust. GitHub client request/time budgets and bounded snapshot attempts limit broad scans. The default 12-repository inspection budget can increase to 20 without changing source policy. See [discovery.md](discovery.md).
 
 `project.py` reads only named dependency manifests at the root and in bounded `apps/*`/`packages/*` directories. It retains recognized dependency names, file hashes and evidence paths, not commands, private dependency names or raw manifest text. Warnings disclose incomplete or unsafe inputs. It never executes package scripts, follows symlinks or reads `.env`/source files.
 
@@ -67,6 +73,8 @@ See [decision-workflow.md](decision-workflow.md) for the current input contract,
 ## State contract
 
 Local state documents use `schema_version: 1`; unsupported manifest/lock versions fail closed. Cached external Registry JSON retains its upstream shape. The manifest contains initial analysis, platform targets and skill/MCP review records. Policy contains exact normalized `owner/repo` allowlist entries. Skill lock records contain source commit/blob hashes and licenses; MCP proposal records contain metadata digest, server version and selected transport. Both record exact approval, output hashes, generator version and timestamp. Approval is not a signature; it attests only to this local user's choice of an exact plan. `status` returns current analysis; initial analysis remains in the manifest.
+
+Preparation adds `.stratagent/runs/ID.json` with a bounded, schema-checked research cohort, context digest, mode, UTC epoch start/expiry, partial flag and egress-approval reference. Run IDs, source reviews, current project/targets, integrity digest and a 15-minute freshness policy are validated before scoped decision/preview/apply. Expiry changes status, not installed file contents or the ability to verify them. Legacy operations without a run are labeled unscoped-cache and cannot reuse a runtime approval. Self-consistency digests are not protection against a malicious local user who can rewrite all state.
 
 `review_digest` hashes the reviewed source/metadata and findings, excluding project-dependent ranking so reviewed evidence can be reranked. `approval` additionally binds the absolute workspace, rendered paths/content, generator version and target configuration. A repository allowlist entry does not approve arbitrary future content. Existing installations/proposals are immutable: unchanged repeats verify and no-op, changed repeats refuse upgrade. Version 0.3 changes generator output and requires fresh approvals; there is no automatic migration.
 
