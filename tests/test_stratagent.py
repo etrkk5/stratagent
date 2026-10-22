@@ -30,7 +30,7 @@ def replace_file(snapshot, path, data, mode="100644"):
 
 
 def file_state(root):
-    return {str(p.relative_to(root)): p.read_bytes() for p in Path(root).rglob("*") if p.is_file()}
+    return {p.relative_to(root).as_posix(): p.read_bytes() for p in Path(root).rglob("*") if p.is_file()}
 
 
 class PlanningTests(unittest.TestCase):

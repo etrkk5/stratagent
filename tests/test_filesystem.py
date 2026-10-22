@@ -2,7 +2,7 @@ import errno
 import io
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import stat
 import subprocess
 import sys
@@ -15,9 +15,20 @@ from stratagent.cli import main
 from stratagent.common import StratagentError, safe_path
 from stratagent.filesystem import LocalFilesystem
 from stratagent.workspace import Workspace
+from test_stratagent import file_state
 
 
 class FilesystemTests(unittest.TestCase):
+    def test_snapshot_keys_are_portable_even_for_windows_relative_paths(self):
+        child = Mock()
+        child.is_file.return_value = True
+        child.relative_to.return_value = PureWindowsPath(".stratagent/runs/example.json")
+        child.read_bytes.return_value = b"original"
+        root = Mock()
+        root.rglob.return_value = [child]
+        with patch("test_stratagent.Path", return_value=root):
+            self.assertEqual(file_state(root), {".stratagent/runs/example.json": b"original"})
+
     def test_capabilities_distinguish_durability_and_permission_models(self):
         posix = LocalFilesystem("posix").capabilities()
         windows = LocalFilesystem("nt").capabilities()
