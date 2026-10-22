@@ -15,6 +15,10 @@ The [first 0.6.0 branch run](https://github.com/etrkk5/stratagent/actions/runs/3
 
 After this fix, both local source and independently installed suites discover **305 tests: 304 pass, one Windows-native junction test skipped on macOS**. The first failed workflow is not counted as a native pass; its corrected commit needs its own completed six-platform result. The preceding 304-test record describes the initial P4 implementation before adding this CI regression.
 
+**Accepted native 0.6.0 implementation matrix:** [run 39843497247](https://github.com/etrkk5/stratagent/actions/runs/39843497247), commit `ae2fc34e19225b8b73ad7797df2c1112a8c304a6`, completes successfully in **all six jobs**: Ubuntu/macOS/Windows × Python 3.11/3.14. Every job builds the wheel, downloads the pinned dependency wheel, installs offline, runs source and installed suites plus both original CLI acceptance scripts, dependency consistency and compilation. Suites discover 305 tests each; Windows runs the native junction test, while POSIX explicitly skips that one Windows-only case. The earlier malformed workflow remains a failure in the record. Runtime activation, artifact/package safety, advisory/revocation policy and P5/P6 exit gates are still not proven by this matrix. Existing nonblocking hosted-runner/action deprecation notices remain visible.
+
+Publication is limited to `feat/reviewed-lifecycle`; main stays unchanged. The accepted implementation result is commit-specific; any following documentation-only commit retains this reference rather than pretending its future CI already passed.
+
 ### Real-source negative compatibility sample
 
 Two fresh read-only GitHub passes each make **28 API requests** and inspect the first two definitions in each of the following popular upstream repositories. This is a four-candidate bounded sample, not exhaustive research, an installability success or a human-labeled evaluation. All four remain excluded; zero third-party resources install or execute.
