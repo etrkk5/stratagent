@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stratagent-cli"
-version = "0.5.1"
+version = "0.6.0"
 description = "StratAgent: a platform-agnostic agent workspace architect with reviewed skills and MCP provenance"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
-dependencies = []
+dependencies = ["PyYAML==6.0.3"]
 
 [project.urls]
 Homepage = "https://github.com/etrkk5/stratagent"

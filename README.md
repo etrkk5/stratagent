@@ -16,7 +16,7 @@ StratAgent treats reusable agent instructions as software dependencies: **pin th
 
 The CLI combines evidence-based planning, transparent candidate ranking, commit-pinned skill snapshots, repository allowlists, content-bound approval and a provenance lockfile. MCP server metadata is reviewed separately: approved proposals stay inert until you manually activate them. A read-only MCP interface exposes analysis, discovery and inspection while keeping approval authority in the local CLI.
 
-Python 3.11+. No third-party runtime dependencies, LLM API key or Git CLI required. Local filesystem backends cover macOS/Linux and Windows; their durability and permission capabilities differ. See [OS portability and actual validation](docs/os-portability.md), not a blanket production-readiness claim.
+Python 3.11+, with pinned PyYAML for bounded safe metadata parsing. No LLM API key or Git CLI required. Local filesystem backends cover macOS/Linux and Windows; their durability and permission capabilities differ. See [OS portability and actual validation](docs/os-portability.md), not a blanket production-readiness claim.
 
 ## Platform- and model-agnostic by design
 
@@ -74,11 +74,11 @@ python3 -m venv .venv
 
 The offline demo uses original examples included in this project. Omit `--apply` to prepare review evidence and dry-run plans without activating platform files. Use a new directory for each demo. Its synthetic commits are explicitly labeled `demo-offline` in provenance.
 
-Run directly from source without installing:
+After installing dependencies, run the checkout's source directly:
 
 ```sh
-PYTHONPATH=src python3 -m stratagent plan "Build a Python API agent for data analysis"
-PYTHONPATH=src python3 -m stratagent demo --workspace ./another-demo --apply
+PYTHONPATH=src .venv/bin/python -m stratagent plan "Build a Python API agent for data analysis"
+PYTHONPATH=src .venv/bin/python -m stratagent demo --workspace ./another-demo --apply
 ```
 
 ## Start from one project idea
@@ -336,7 +336,7 @@ my-agent/
     └── agents/               # Read-only Claude Code sub-agent definitions
 ```
 
-Skill adapters emit only `name` and `description` metadata and preserve relative text references and license/notice files. Original source content remains in the evidence cache. Claude sub-agents use `Read, Grep, Glob` and `permissionMode: plan`; Antigravity agents use a constrained read-only tool list and shell execution policy `off`. The parent environment's permission settings also apply. Codex roles are represented as portable skills, not native multi-agent runtime configuration.
+Skill adapters emit `name`, `description` and optional passive `compatibility` metadata and preserve relative text references and license/notice files. Typed source metadata and pinned local reference checks are bound into the review; tool grants, unsupported metadata and missing/unsafe references block installation. See [resource assurance](docs/resource-assurance.md) for supported syntax, scanner refresh and remaining P4 gates. Original source content remains in the evidence cache. Claude sub-agents use `Read, Grep, Glob` and `permissionMode: plan`; Antigravity agents use a constrained read-only tool list and shell execution policy `off`. The parent environment's permission settings also apply. Codex roles are represented as portable skills, not native multi-agent runtime configuration.
 
 StratAgent does not change user-authored `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.mcp.json`, `.codex/config.toml`, `.agents/mcp_config.json`, global host settings or hooks. Unowned file conflicts stop installation, even for identical bytes. Reviewed updates/removal affect only recorded managed outputs and refuse drift.
 
@@ -404,4 +404,4 @@ Primary sources checked on October 18–19, 2026:
 - [OpenAI skills](https://github.com/openai/skills), [Anthropic skills](https://github.com/anthropics/skills) and [VoltAgent sub-agents](https://github.com/VoltAgent/awesome-claude-code-subagents)
 - [SPDX license texts](https://github.com/spdx/license-list-data); pinned reference commits/hashes are in `src/stratagent/data/license_sources.json`.
 
-StratAgent source code is MIT-licensed. Discovered resources retain their own licenses. Version 0.5 requires fresh previews/approvals and explicitly reviewed lock migration. Do not edit approval-bound state by hand. This remains a developer preview, not a production/GA claim.
+StratAgent source code is MIT-licensed. Discovered resources retain their own licenses. Version 0.6 requires source review refresh and fresh previews/approvals; the reviewed lock migration contract remains in force. Do not edit approval-bound state by hand. This remains a developer preview, not a production/GA claim.

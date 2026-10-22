@@ -31,8 +31,10 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Build wheel
         run: python -m pip wheel . --no-deps --wheel-dir dist
+      - name: Download reviewed runtime dependency wheels
+        run: python -m pip download --only-binary=:all: --no-deps PyYAML==6.0.3 --dest dist
       - name: Install built wheel
-        run: python -m pip install --no-index --no-deps --force-reinstall --find-links dist stratagent-cli
+        run: python -m pip install --no-index --force-reinstall --find-links dist stratagent-cli
       - name: Source tests
         run: python scripts/run_tests.py --timeout 600
         env:

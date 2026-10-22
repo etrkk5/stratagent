@@ -32,7 +32,7 @@ The part I care most about is making each installation reviewable:
 - A provenance lockfile and a command to detect content drift.
 - A read-only MCP surface that preserves the CLI's installation boundary.
 
-The working Python release has no third-party runtime dependencies, includes an offline demo and has an offline regression suite. See `docs/validation.md` for exact local results and the distinction between previous CI evidence and the current development branch.
+The working Python preview uses pinned PyYAML for bounded metadata parsing, includes an offline demo and has an offline regression suite. See `docs/validation.md` for exact results and commit-specific CI evidence. The [resource assurance contract](resource-assurance.md) lists unsupported executable content and remaining release gates.
 
 Planning is currently deterministic, imports are restricted to documentation bundles, and coding-agent processes are not launched automatically. Those boundaries are explicit so the current behavior is easy to inspect.
 

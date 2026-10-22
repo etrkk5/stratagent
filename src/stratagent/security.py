@@ -7,10 +7,13 @@ from functools import lru_cache
 from importlib.resources import files as resource_files
 from pathlib import PurePosixPath
 
-from .common import (StratagentError, MAX_BUNDLE, MAX_FILES, NAME, SHA, decode_text,
+from .common import (StratagentError, MAX_BUNDLE, MAX_FILES, SHA, decode_text,
                      digest, git_blob, identity, repository, safe_path)
 from .planner import words
+from .skill_format import FIELDS, metadata
+from .references import review_references
 
+SCANNER_VERSION = 2
 LICENSE_NAMES = {"license", "license.md", "license.txt", "copying", "copying.md", "copying.txt"}
 NOTICE_NAMES = LICENSE_NAMES | {"notice", "notice.md", "notice.txt", "copyright", "copyright.md", "copyright.txt"}
 PERMITTED_LICENSES = {"MIT", "Apache-2.0", "BSD-3-Clause", "BSD-2-Clause", "ISC"}
@@ -22,57 +25,6 @@ RULES = [
     ("credential-access", r"(?:~\/\.ssh|\/\.aws\/credentials|id_rsa|(?:send|upload|exfiltrate)[^\n]{0,80}(?:secrets?|tokens?|credentials?))"),
     ("active-configuration", r"^\s*(?:hooks|mcpServers|permissionMode|allowed-tools|disable-model-invocation)\s*:"),
 ]
-
-
-def metadata(text):
-    """Read a deliberately limited YAML subset without object deserialization.
-
-    Only name/description/license scalars are consumed. Unsupported scalar syntax
-    fails closed; other metadata is ignored here and still scanned as raw text.
-    """
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        raise StratagentError("Definition requires YAML frontmatter.")
-    try:
-        end = lines.index("---", 1)
-    except ValueError as exc:
-        raise StratagentError("Unclosed frontmatter.") from exc
-    result = {}
-    i = 1
-    while i < end:
-        line = lines[i]
-        match = re.match(r"^(name|description|license):\s*(.*)$", line)
-        i += 1
-        if not match:
-            continue
-        key, value = match.groups()
-        if key in result:
-            raise StratagentError("Duplicate metadata field.")
-        if value in ("|", ">", "|-", ">-", "|+", ">+"):
-            parts = []
-            while i < end and (not lines[i].strip() or lines[i].startswith((" ", "\t"))):
-                parts.append(lines[i].strip())
-                i += 1
-            value = ("\n" if value.startswith("|") else " ").join(parts).strip()
-        elif value.startswith('"') and value.endswith('"'):
-            import json
-            try:
-                value = json.loads(value)
-            except ValueError as exc:
-                raise StratagentError("Unsupported quoted YAML scalar; use JSON-compatible quotes.") from exc
-        elif value.startswith("'") and value.endswith("'"):
-            value = value[1:-1].replace("''", "'")
-        elif not value or value[0] in "&*!{[>|\"'" or " #" in value:
-            raise StratagentError("Unsupported YAML scalar syntax; review manually.")
-        result[key] = value
-    name = result.get("name", "")
-    if not NAME.fullmatch(name) or len(name) > 64:
-        raise StratagentError("Name must be a 1–64 character lowercase slug.")
-    if not 1 <= len(result.get("description", "")) <= 1024:
-        raise StratagentError("Description must be 1–1024 characters.")
-    if not "\n".join(lines[end + 1:]).strip():
-        raise StratagentError("Definition body is empty.")
-    return result, "\n".join(lines[end + 1:]).strip() + "\n"
 
 
 @lru_cache(maxsize=1)
@@ -169,6 +121,33 @@ def assess(snapshot, terms=()):
     except StratagentError as exc:
         meta, body = {"name": "invalid", "description": "Invalid metadata"}, ""
         findings.append({"severity": "block", "rule": "invalid-metadata", "path": entry, "detail": str(exc)})
+    extensions = sorted(set(meta) - FIELDS)
+    for field in extensions:
+        if snapshot["kind"] == "subagent" and field == "tools" and isinstance(meta[field], str) and set(meta[field].replace(",", " ").split()) <= {"Read", "Grep", "Glob"}:
+            findings.append({"severity": "review", "rule": "source-tools-not-granted", "path": entry,
+                             "detail": "Source read-only tool hints are stripped; only trusted adapter permissions are emitted."})
+        else:
+            findings.append({"severity": "block", "rule": "unsupported-metadata-field", "path": entry, "field": field})
+    if "allowed-tools" in meta:
+        findings.append({"severity": "block", "rule": "source-tool-grant", "path": entry,
+                         "detail": "Experimental pre-approved source tools are not authorized by a file review."})
+    if meta.get("compatibility"):
+        findings.append({"severity": "review", "rule": "compatibility-not-verified", "path": entry,
+                         "detail": "Declared environment requirements are untrusted and not automatically installed or verified."})
+
+    def strings(value):
+        if isinstance(value, str):
+            return [value]
+        if isinstance(value, dict):
+            return [text for key, child in value.items() for text in [key, *strings(child)]]
+        if isinstance(value, list):
+            return [text for child in value for text in strings(child)]
+        return []
+
+    decoded_metadata = "\n".join(strings(meta))
+    for rule, pattern in RULES:
+        if re.search(pattern, decoded_metadata, re.I | re.M):
+            findings.append({"severity": "block", "rule": rule, "path": entry, "location": "decoded-metadata"})
     for path, data in files.items():
         p = PurePosixPath(path)
         if p.suffix.lower() not in (".md", ".txt", ".rst") and p.name.lower() not in NOTICE_NAMES:
@@ -180,11 +159,12 @@ def assess(snapshot, terms=()):
             if match:
                 findings.append({"severity": "block", "rule": rule, "path": path,
                                  "line": decode_text(data)[:match.start()].count("\n") + 1})
+    references = review_references(files, entry, snapshot["kind"], NOTICE_NAMES)
+    findings.extend(references.pop("findings"))
     ancestors = (PurePosixPath(entry).parent, *PurePosixPath(entry).parent.parents)
     license_paths = [p for p in files if PurePosixPath(p).name.lower() in LICENSE_NAMES and PurePosixPath(p).parent in ancestors]
     nearest = sorted(license_paths, key=lambda p: (-len(PurePosixPath(p).parts), p))
     license_value = license_id(decode_text(files[nearest[0]])) if nearest else "UNKNOWN"
-    # Ambiguous dual/custom licenses and inconsistent declarations are not inferred.
     if nearest:
         depth = len(PurePosixPath(nearest[0]).parts)
         if any(license_id(decode_text(files[p])) != license_value for p in nearest if len(PurePosixPath(p).parts) == depth):
@@ -204,7 +184,11 @@ def assess(snapshot, terms=()):
     source = {"repo": repository(snapshot["repo"]), "commit": snapshot["commit"], "entry": entry, "origin": snapshot["origin"],
               "kind": snapshot["kind"], "files": [{"path": p, "sha256": digest(d), "git_sha": git_blob(d), "size": len(d)} for p, d in sorted(files.items())]}
     review = {**source, "name": meta["name"], "description": meta["description"], "license": license_value,
-              "findings": findings, "eligible": not any(f["severity"] == "block" for f in findings), "scanner_version": 1}
+              "metadata": meta, "reference_review": references,
+              "assurance": {"level": "static-text-only", "artifact_execution": "never", "malware_safety": "not-proven",
+                            "vulnerability_status": "not-checked", "tool_behavior": "not-audited",
+                            "installable_scope": "UTF-8 documentation only; code, archives and host-specific metadata fail closed"},
+              "findings": findings, "eligible": not any(f["severity"] == "block" for f in findings), "scanner_version": SCANNER_VERSION}
     body_words = len(body.split())
     sections = len(re.findall(r"^(?:#{1,6}\s|[-*]\s|\d+\.\s)", body, re.M))
     review["quality"] = {"metadata_valid": meta["name"] != "invalid", "body_words": body_words,

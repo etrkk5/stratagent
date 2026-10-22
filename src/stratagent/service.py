@@ -17,7 +17,7 @@ from .project import inspect_project
 from .registry import Registry, assess_server, render_server
 from .research import RESEARCH_SCHEMA, preview as preview_research, project_context
 from .sessions import load as load_session
-from .security import assess, unpack
+from .security import SCANNER_VERSION, assess, unpack
 from .workspace import Workspace
 from .lifecycle import Transactions, validate_lock
 
@@ -201,6 +201,8 @@ class Stratagent:
         saved = manifest["candidates"][candidate_id]
         if not isinstance(saved, dict):
             raise StratagentError("Invalid candidate review record.")
+        if saved.get("scanner_version") != SCANNER_VERSION:
+            raise StratagentError("Cached source review uses an older or unsupported scanner. Rediscover and review again; installed files are not changed.")
         review_digest = saved.get("review_digest", "")
         if not isinstance(review_digest, str) or len(review_digest) != 64 or any(c not in "0123456789abcdef" for c in review_digest):
             raise StratagentError("Invalid review digest in manifest.")
@@ -641,7 +643,10 @@ class Stratagent:
         return {"schema_version": 1, "workspace": str(self.ws.root), "platforms": manifest["platforms"],
                 "filesystem": self.ws.fs.capabilities(),
                 "installations": [{"key": key, "outputs": len(record["outputs"])} for key, record in self.lock()["installations"].items()],
-                "analysis": self.analysis(manifest), "candidates": list(manifest["candidates"].values()),
+                "analysis": self.analysis(manifest), "candidates": [
+                    {**review, "scanner_current": review.get("scanner_version") == SCANNER_VERSION,
+                     "eligible": review.get("eligible", False) and review.get("scanner_version") == SCANNER_VERSION}
+                    for review in manifest["candidates"].values()],
                 "approved_blueprint": ({"decision": approved["decision"], "context_digest": approved["context_digest"],
                                         "context_current": context_current, "context_error": context_error,
                                         "roles": [role["id"] for role in approved["roles"]], "approval": installation["approval"]} if approved else None),

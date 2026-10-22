@@ -1,5 +1,27 @@
 # Validation
 
+## Version 0.6.0 P4 metadata/reference checkpoint — October 22, 2026
+
+P4 has started, **not completed**. [Resource assurance](resource-assurance.md) defines the supported metadata/reference syntax, scanner refresh, first runtime dependency and still-blocking code/artifact/tool/revocation work. This is not a production or native-host activation claim.
+
+- **304 tests discovered: 303 pass, one explicitly Windows-native junction test skipped on macOS**, from source and from a separately installed wheel with `PYTHONPATH` unset and working directory `/tmp` (Python 3.14.3). The 29 new test methods cover typed metadata, standard YAML comments/quotes/flow mappings, duplicate/alias/tag/merge/depth/event/size/type rejection, escaped injection/control/surrogate payloads, source permission refusal, passive compatibility on all four targets, pinned local references, missing/ambiguous/malformed/encoded traversal links, non-fetching external links, parser budgets, stale scanner/status, retained verify/removal, changed-metadata stage rejection and private-data-free CLI logging. Tests do not execute discovered source. An initial installed-test harness used a relative `tests` directory from `/tmp` and failed discovery before running tests; the corrected absolute test path passes the complete suite.
+- The installed CLI lifecycle acceptance passes **15 commands**, all four targets, **34 initial outputs → 7 writes/27 obsolete managed deletions → final 7-file removal**, four byte-identical original user files/settings, four transactions and repeat-stage no-ops. Installed CLI smoke verifies the original **46-output demo**, planning/decision/blueprint/offline research/session entry. Both acceptance scripts report zero source/model calls, third-party resource executions or host activations.
+- Wheel SHA-256: `8ec88b1917a4c96d33207ea9088c3457405dd1ce236e5c2020b9b55b366ed15d`. All **26 runtime module files** are byte-identical between the tested wheel and current source. Clean installation resolves PyYAML 6.0.3 only from local wheels with `--no-index`; dependency consistency, bytecode compilation, local Markdown link targets and `git diff --check` pass. No runtime artifact is published to PyPI. The observed macOS arm64/CPython 3.14 PyYAML wheel SHA-256 is `34d5fcd24b8445fadc33f9cf348c1047101756fd760b4dacb5c3e99755703310`; this is platform-specific, not a universal dependency hash.
+- A point-in-time official OSV query for PyPI/PyYAML 6.0.3 returns **zero advisory IDs**. This is not ongoing vulnerability/revocation monitoring or a safety certification. Raw project content was not sent. CI now downloads a pinned dependency wheel before `--no-index` installation; no dependency source-build fallback is requested. Native 0.6 results must be read from the corresponding [branch CI run](https://github.com/etrkk5/stratagent/actions/workflows/tests.yml); the 0.5.1 six-platform result below is not reused as proof of these new changes.
+
+### Real-source negative compatibility sample
+
+Two fresh read-only GitHub passes each make **28 API requests** and inspect the first two definitions in each of the following popular upstream repositories. This is a four-candidate bounded sample, not exhaustive research, an installability success or a human-labeled evaluation. All four remain excluded; zero third-party resources install or execute.
+
+| Repository / immutable commit | Definition | Observed result |
+| --- | --- | --- |
+| `anthropics/skills` / `dbd4588f9e1033efb41dad4bef2f7947c8993d44` | `skills/academy-guide/SKILL.md` | Review has 9 references; unsupported license and missing `URL` target block. The latter comes from illustrative Markdown at line 82: a known conservative false positive, not evidence of malware. No force bypass added |
+| Same commit | `skills/algorithmic-art/SKILL.md` | Review has 1 reference; non-document content and unsupported license block. Source was not claimed artifact-audited |
+| `openai/skills` / `49f948faa9258a0c61caceaf225e179651397431` | `skills/.curated/aspnet-core/SKILL.md` | UTF-8-only bundle constraint rejects binary content before review |
+| Same commit | `skills/.curated/chatgpt-apps/SKILL.md` | Regular non-executable-file constraint rejects bundle before review |
+
+These real gaps are why P4 remains open: do not claim support for arbitrary current skills or move on to P5. Next implement bounded read-only artifact/tool audits, immutable package/dependency integrity and explicit revocation/advisory policy, while addressing documented format false positives without granting source execution authority.
+
 ## Version 0.5.1 OS-independent filesystem boundary — October 22, 2026
 
 The [OS contract](os-portability.md) isolates native lock, replacement, permission and redirect behavior from workspace/transaction/planning logic. Windows has a nonblocking persistent byte-range mutex, process-death recovery tests, writable/read-only mode observation, junction/reparse rejection and bounded sharing-violation retries. POSIX retains flock, exact modes and directory fsync. `doctor` reports capabilities without writes; neither backend claims physical-power-loss certification. Windows inherits workspace ACLs; private POSIX bits are not emulated.
