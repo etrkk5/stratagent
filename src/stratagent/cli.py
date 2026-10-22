@@ -9,6 +9,7 @@ from .common import StratagentError
 from .demo import demo
 from .hosts import DEFAULT_TARGETS, catalog
 from .mcp import serve
+from .orchestration import Orchestrator
 from .planner import analyze
 from .project import inspect_project
 from .service import Stratagent
@@ -26,6 +27,14 @@ def parser():
         "prepare": "Turn one project idea into researched skills/MCP choices and a reviewable environment blueprint; never auto-install",
         "research-request": "Export project context and a model-neutral runtime search-plan schema; writes nothing",
         "research-preview": "Preview exact proposed public queries and research-only egress approval; no network or writes",
+        "session-start": "Start a bounded existing-host model orchestration session; no network or installation",
+        "session-request": "Read the next model request, exact search review or final blueprint",
+        "session-submit": "Validate and persist a model proposal; never search, approve or install",
+        "session-search": "Run one separately approved search round; never install or execute resources",
+        "session-status": "Read durable progress, budgets and sanitized event history",
+        "session-cancel": "Cancel a session; active requests stop at their next boundary",
+        "session-resume": "Resume with a fresh model request; never reset budgets or replay searches",
+        "session-answer": "Answer model questions with a complete revised prompt before installation; invalidates old context/approvals",
         "plan": "Analyze a prompt without writing files",
         "platforms": "List adapter capabilities and portable export support without reading a workspace",
         "decision-request": "Export grounded context and a provider-independent architectural decision schema",
@@ -41,13 +50,13 @@ def parser():
         "configure": "Preview or apply generated task configurations",
         "verify": "Verify hashes of all locked outputs",
         "status": "Show workspace, candidates, policy and verification",
-        "serve": "Run a read-only MCP server over stdio",
+        "serve": "Run default read-only stdio MCP, or opt into one session's proposal-only tools",
         "demo": "Create an offline demo with original synthetic examples",
     }.items():
         sub = commands.add_parser(name, help=help_text)
         sub.add_argument("--workspace", default=argparse.SUPPRESS, help="Project directory (demo may create it)")
         sub.add_argument("--log-json", action="store_true", default=argparse.SUPPRESS, help="Emit structured events to stderr")
-        if name in ("init", "plan", "prepare", "research-request", "research-preview"):
+        if name in ("init", "plan", "prepare", "research-request", "research-preview", "session-start"):
             sub.add_argument("prompt")
         if name == "init":
             sub.add_argument("--platforms", default=",".join(DEFAULT_TARGETS), help="Comma-separated adapter IDs; see stratagent platforms")
@@ -66,6 +75,23 @@ def parser():
             sub.add_argument("--platforms", help="Comma-separated adapter IDs; defaults to current workspace or built-in targets")
         if name == "research-preview":
             sub.add_argument("--research-plan", required=True, help="Workspace-relative JSON proposal to inspect without network access")
+        if name == "session-start":
+            sub.add_argument("--platforms", help="Comma-separated adapter IDs; preserve existing targets by default")
+            sub.add_argument("--model-turns", type=int, default=6, help="Maximum submitted model proposals, 2–16; not an upstream billing cap")
+            sub.add_argument("--search-rounds", type=int, default=2, help="Maximum separately approved research rounds, 1–3")
+            sub.add_argument("--network-requests", type=int, default=160, help="Total reserved connector-call budget, 1–300; up to 80 reserved per round")
+            sub.add_argument("--seconds", type=int, default=900, help="Session lifetime including review pauses, 30–3600 seconds")
+        if name.startswith("session-") and name != "session-start":
+            sub.add_argument("session_id")
+        if name == "session-answer":
+            sub.add_argument("prompt", help="Complete revised project request, not a model-authored instruction")
+        if name == "session-submit":
+            sub.add_argument("--request-id", required=True, help="Exact current model request identity")
+            sub.add_argument("--response", required=True, help="Workspace-relative JSON action plus plan or decision")
+        if name == "session-search":
+            sub.add_argument("--approve-search", required=True, help="Exact session search_review.approval; not the lower-level research hash")
+        if name == "serve":
+            sub.add_argument("--orchestration", help="Opt into proposal-only writes for ONE session; exposes only session request/submit tools, no network tools")
         if name in ("decision-request", "blueprint"):
             sub.add_argument("--run", help="Exact research run ID; confines sources, binds freshness and rejects expiry")
         if name == "discover-mcp":
@@ -77,6 +103,7 @@ def parser():
             sub.add_argument("--option", type=int, default=0, help="Transport option index from inspect-mcp")
         if name == "blueprint":
             sub.add_argument("--decisions", help="Workspace-relative JSON proposal from your model or human review; no model API is called")
+            sub.add_argument("--session", help="Use the final decision and exact run from one reviewed orchestration session; incompatible with --decisions/--run")
         if name == "discover":
             sub.add_argument("--repo", action="append", help="Exact owner/repo (repeatable); skips repository search")
             sub.add_argument("--limit", type=int, default=6)
@@ -119,13 +146,27 @@ def main(argv=None):
         elif args.command == "demo":
             result = demo(args.workspace, args.apply)
         elif args.command == "serve":
-            serve(args.workspace)
+            serve(args.workspace, orchestration=args.orchestration)
             event("command.completed", 0)
             return 0
         else:
             forge = Stratagent(args.workspace)
             if args.command == "init":
                 result = forge.init(args.prompt, args.platforms.split(","), not args.no_scan_project)
+            elif args.command.startswith("session-"):
+                driver = Orchestrator(forge)
+                action = args.command.removeprefix("session-")
+                if action == "start":
+                    result = driver.start(args.prompt, args.platforms.split(",") if args.platforms is not None else None,
+                                          args.model_turns, args.search_rounds, args.network_requests, args.seconds)
+                elif action == "submit":
+                    result = driver.submit(args.session_id, args.request_id, forge.ws.read(args.response))
+                elif action == "search":
+                    result = driver.search(args.session_id, args.approve_search)
+                elif action == "answer":
+                    result = driver.answer(args.session_id, args.prompt)
+                else:
+                    result = getattr(driver, action)(args.session_id)
             elif args.command == "prepare":
                 result = forge.prepare(args.prompt, args.platforms.split(",") if args.platforms is not None else None,
                                        args.limit, args.repo_limit, args.mcp_limit, args.offline,
@@ -158,8 +199,10 @@ def main(argv=None):
                 elif args.command == "configure-mcp":
                     result, files = forge.preview_mcp(args.candidate_id, args.option) if args.content else (forge.configure_mcp(args.candidate_id, args.option, args.approve, args.apply), None)
                 elif args.command == "blueprint":
-                    decisions = forge.ws.read(args.decisions) if args.decisions else None
-                    result, files = forge.preview_blueprint(decisions, args.run) if args.content else (forge.blueprint(decisions, args.approve, args.apply, args.run), None)
+                    if args.session and (args.decisions or args.run):
+                        raise StratagentError("--session cannot be combined with --decisions or --run.")
+                    selection = Orchestrator(forge).review(args.session) if args.session else {"decisions": forge.ws.read(args.decisions) if args.decisions else None, "run_id": args.run}
+                    result, files = forge.preview_blueprint(**selection) if args.content else (forge.blueprint(approval=args.approve, apply=args.apply, **selection), None)
                 else:
                     result, files = forge.preview_config() if args.content else (forge.configure(args.approve, args.apply), None)
                 if files is not None:

@@ -1,6 +1,7 @@
 """Local state and rollback-safe writes. Never follow workspace symlinks."""
 import json
 import os
+import stat
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
@@ -60,6 +61,23 @@ class Workspace:
         state = self.path(".stratagent")
         state.mkdir(exist_ok=True)
         lock = self.path(".stratagent/.write-lock")
+        if os.name == "posix":
+            import fcntl
+            if lock.exists():
+                raise StratagentError("Another write is active (or a legacy .stratagent/.write-lock exists); inspect it before retrying.")
+            mutex = self.path(".stratagent/.mutation-lock")
+            descriptor = os.open(mutex, os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0), 0o600)
+            try:
+                if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+                    raise StratagentError("Workspace mutation lock must be a regular file.")
+                try:
+                    fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError as exc:
+                    raise StratagentError("Another write is active; no changes made.") from exc
+                yield
+            finally:
+                os.close(descriptor)
+            return
         try:
             lock.mkdir()
         except FileExistsError as exc:

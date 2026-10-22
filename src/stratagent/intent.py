@@ -2,8 +2,8 @@
 import re
 
 
-NEGATIVE_PREFIX = re.compile(r"\b(?:no|without|exclude|excluding|avoid|don't need|do not need|don't want|do not want|not using|no need for)\b", re.I)
-NEGATIVE_SUFFIX = re.compile(r"\b(?:not needed|not required|is excluded|out of scope|istemiyorum|istemiyoruz|gerekmiyor|gerekmez|olmasın|olmayacak|kullanmayacağız|yok|hariç|olmadan|içermesin)\b", re.I)
+NEGATIVE_PREFIX = re.compile(r"\b(?:no|without|exclude|excluding|avoid|don't need|do not need|don't want|do not want|(?:do not|don't) (?:add|include|implement|enable|use)|not using|no need for)\b", re.I)
+NEGATIVE_SUFFIX = re.compile(r"\b(?:not needed|not required|is excluded|out of scope|istemiyorum|istemiyoruz|gerekmiyor|gerekmez|olmasın|olmayacak|kullanmayacağız|yok|hariç|olmadan|içermesin|içermeyecek)\b", re.I)
 UNCERTAIN = re.compile(r"\b(?:maybe|perhaps|optional|consider|belki|opsiyonel|isteğe bağlı|gerekir mi|do we need)\b", re.I)
 DEFERRED = re.compile(r"\b(?:later|future|eventually|ileride|sonra|sonraki aşama)\b", re.I)
 CLAUSES = re.compile(r"[,;!?\n]+|(?<=\.)\s+|\b(?:but|however|ama|ancak|fakat)\b", re.I)
@@ -61,7 +61,12 @@ def requirement_records(prompt, definitions):
                        "acceptance": acceptance, "evidence": evidence,
                        "interpretation": "bounded bilingual scope rules; complex negation and intent require model/human review"})
         if name == "offline":
-            testing_only = all(re.search(r"\b(?:offline|çevrimdışı)\s+(?:tests?|testing|testler\w*)\b", item["quote"], re.I) for item in evidence)
+            def testing_scope(item):
+                start, end = item["span"]
+                following = re.match(r"\s+(?:tests?|testing|testler\w*)\b", prompt[end:], re.I)
+                preceding = re.search(r"\b(?:tests?|testing|testler\w*)\s+(?:(?:must|should|will|shall|can|run|be|are|always|tamamen|da|de)\s+){0,5}$", prompt[:start], re.I)
+                return following or preceding
+            testing_only = all(testing_scope(item) for item in evidence)
             result[-1]["scope"] = "testing" if testing_only else "project"
     return result
 

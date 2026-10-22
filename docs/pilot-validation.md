@@ -1,5 +1,7 @@
 # First live coding-client pilot
 
+For the later two-stage 0.4 existing-host orchestration test, see [orchestration.md](orchestration.md#observed-existing-host-test--october-22-2026). The results below describe the earlier 0.3.0 pilot.
+
 Recorded October 20, 2026, on macOS with Python 3.14.3, StratAgent 0.3.0 and Codex CLI 0.163.0-alpha.10.2. This is a locally observed integration result, not a safety attestation, architecture-quality benchmark or production-readiness certification.
 
 ## What was exercised

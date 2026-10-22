@@ -214,7 +214,7 @@ def interpret(context, decisions=None):
             seen.add(requirement["id"])
             previous = requirements.get(requirement["id"])
             if previous and previous["status"] in ("required", "excluded") and previous["status"] != requirement["status"]:
-                raise StratagentError("Decision contradicts an explicit requirement; revise the project request rather than overriding its scope.")
+                raise StratagentError(f"Decision contradicts explicit {requirement['id']}={previous['status']}; revise the project request rather than overriding its scope.")
             if previous and previous["id"] == "offline" and previous["status"] == "required" and previous.get("scope", "project") == "project" and requirement.get("scope", "project") != "project":
                 raise StratagentError("Decision cannot weaken an explicit project-wide offline scope.")
             requirements[requirement["id"]] = {**(previous or {}), **requirement, "interpretation": "external proposal; semantic correctness requires human review"}
