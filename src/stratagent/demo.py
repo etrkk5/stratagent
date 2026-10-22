@@ -59,7 +59,9 @@ def demo(root, apply=False):
     if apply:
         # Only original fixtures created above, explicitly requested with --apply.
         forge.allow("stratagent-demo/original-examples")
-        results = [forge.install(c["id"], p["approval"], True) for c, p in zip(candidates, previews)]
+        for candidate in candidates:
+            current = forge.install(candidate["id"])
+            results.append(forge.install(candidate["id"], current["approval"], True))
         config = forge.configure()
         results.append(forge.configure(config["approval"], True))
     return {"demo": "offline-original-fixtures", "synthetic_commit": True,

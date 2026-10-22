@@ -20,7 +20,7 @@ def prepare(service, prompt, targets, existing, limit, repo_limit, mcp_limit, of
     selected_targets = platforms(targets if targets is not None else (existing["platforms"] if existing else list(DEFAULT_TARGETS)))
     if existing:
         if normalized_prompt != existing["analysis"]["prompt"] or selected_targets != platforms(existing["platforms"]):
-            raise StratagentError("Existing workspace has a different request or targets. Use its original request/targets or a fresh workspace; prepare never resets state.")
+            raise StratagentError("Existing workspace has a different request or targets. Separately review stratagent revise first; prepare never resets state.")
     research_context = service.research_context(normalized_prompt, selected_targets)
     started_at = int(time.time())
     search_preview = None

@@ -199,8 +199,8 @@ class WorkspaceTests(unittest.TestCase):
 
     def test_install_provenance_verification_and_idempotence(self):
         candidate_id = self.candidate["id"]
-        plan = self.forge.install(candidate_id)
         self.forge.allow(self.candidate["repo"])
+        plan = self.forge.install(candidate_id)
         result = self.forge.install(candidate_id, plan["approval"], True)
         self.assertTrue(result["applied"])
         self.assertTrue(self.forge.verify()["ok"])

@@ -16,10 +16,11 @@ StratAgent treats reusable agent instructions as software dependencies: **pin th
 
 The CLI combines evidence-based planning, transparent candidate ranking, commit-pinned skill snapshots, repository allowlists, content-bound approval and a provenance lockfile. MCP server metadata is reviewed separately: approved proposals stay inert until you manually activate them. A read-only MCP interface exposes analysis, discovery and inspection while keeping approval authority in the local CLI.
 
-Python 3.11+. No third-party runtime dependencies, LLM API key or Git CLI required.
+Python 3.11+. No third-party runtime dependencies, LLM API key or Git CLI required. Local filesystem backends cover macOS/Linux and Windows; their durability and permission capabilities differ. See [OS portability and actual validation](docs/os-portability.md), not a blanket production-readiness claim.
 
 ## Platform- and model-agnostic by design
 
+- **OS-independent lifecycle:** planning and transactions share one filesystem capability boundary. POSIX and Windows use native kernel locks and same-filesystem replacements; `stratagent doctor` reports real permission/durability differences without modifying the project. Network filesystems and physical power loss are not certified.
 - **Platform-agnostic core:** requirements, task dependencies, acceptance criteria, discovery ranking and approval policy do not depend on a particular coding environment. Trusted, pure adapters translate the plan into host paths, constrained role metadata and inert MCP proposals.
 - **Model/provider-agnostic decisions:** use your existing model or human judgment through a strict JSON contract, the default read-only MCP interface or an explicitly selected proposal-only orchestration session. StratAgent adds no model SDK dependency or provider credential requirement. Without an external proposal, it uses its disclosed local rules.
 - **Standards over a private ecosystem:** reuse Agent Skills definitions, GitHub sources and the official MCP Registry rather than requiring a new StratAgent registry.
@@ -99,13 +100,13 @@ For genuinely model-planned runtime queries, use `research-request` → `researc
 
 **Version 0.4 adds cooperative existing-host orchestration:** `session-start` creates durable progress; `serve --orchestration ID` exposes only model request/proposal tools for that one session. The model proposes a plan, `session-search` requires separate exact query approval, and the model compares current evidence or proposes a separately reviewed refinement. `blueprint --session ID --content` previews its final architecture; installation remains an independent approval. Proposal turns, search rounds, shared connector calls and session lifetime are bounded; cancel/resume never silently replays a search or resets budgets. No model SDK, provider credential or particular host is required. This is an operator-mediated runtime loop, **not** an unattended provider driver, upstream billing cap or environment-upgrade engine. Follow the [orchestration walkthrough](docs/orchestration.md) and [production-readiness gates](docs/production-readiness.md).
 
-In **0.4.1**, the model can pause for missing project/resource details using `clarify`. Only the operator's `session-answer` can revise the planning request before installation; previous decisions/query approvals then become stale without resetting budgets. POSIX mutation locks now release on process death, and forced-process tests cover planning checkpoints and answer recovery. This does not implement P3 installation/update transactions; see the walkthrough's scope and recovery limitations.
+In **0.4.1**, the model can pause for missing project/resource details using `clarify`. Only the operator's `session-answer` can revise the planning request before installation; previous decisions/query approvals then become stale without resetting budgets. POSIX mutation locks release on process death. **0.5 adds reviewed environment transactions:** stage an exact diff, approve it separately, update/remove only owned files, and recover an interrupted operation from a durable backup journal. See the [lifecycle walkthrough](docs/lifecycle.md); host activation remains manual and separately authorized.
 
 The [existing-host P2 acceptance record](docs/p2-existing-host-validation.md) covers six real EN/TR cases, a separately approved model refinement after controlled source failure and the clarification/answer flow. Unsupported or irrelevant sources were not selected; partial research remained blocked. This is a bounded planning/orchestration result, not proof that all project dependencies can already be installed or that the product is production-ready.
 
 GitHub discovery surveys up to **eight star-sorted queries and 80 result slots**, deduplicates public repositories and preserves coverage across skills, agent/subagent definitions and MCP-related repositories. It inspects up to **12 repositories by default, configurable to 20**. Each selected source is pinned before supported definition content is reviewed. The report distinguishes metadata found, repositories inspected, definitions discovered and candidates actually reviewed; these are not interchangeable counts. Popularity helps discover alternatives, **never proves safety or overrides policy**. The default fallback sends only allowlisted public vocabulary; model-proposed terms require separate exact egress review. Source connectors receive approved query terms, not the raw project request. See [discovery.md](docs/discovery.md) for limits and assurance levels.
 
-`prepare --offline` uses only local/cached evidence and makes no discovery network requests. An offline *project* requirement instead skips Registry service discovery but still permits reviewing GitHub documents during preparation. Existing workspaces retain their request and targets; a different request/target set needs a fresh workspace. Preparation writes only local state/cache, not active environment files. Sources are still untrusted, Registry metadata is not a package audit, and native host capabilities remain adapter-specific.
+`prepare --offline` uses only local/cached evidence and makes no discovery network requests. An offline *project* requirement instead skips Registry service discovery but still permits reviewing GitHub documents during preparation. Existing workspaces retain their request and targets; use a separately reviewed `revise` operation to change them before fresh research. Revision changes planning context, not installed files. Preparation writes only local state/cache, not active environment files. Sources are still untrusted, Registry metadata is not a package audit, and native host capabilities remain adapter-specific.
 
 The lower-level examples below are alternative entry points; do not initialize an already prepared workspace again.
 
@@ -134,6 +135,7 @@ For model/human judgment, `decision-request` returns current evidence, immutable
 
 # Allow each exact skill/npm repository reported by the preview after review.
 .venv/bin/stratagent allow owner/repo --workspace ./my-agent
+.venv/bin/stratagent blueprint --decisions decision.json --content --workspace ./my-agent
 .venv/bin/stratagent blueprint --decisions decision.json --apply \
   --approve BLUEPRINT_APPROVAL_SHA256 --workspace ./my-agent
 .venv/bin/stratagent verify --workspace ./my-agent
@@ -141,7 +143,28 @@ For model/human judgment, `decision-request` returns current evidence, immutable
 
 Use actual repository names and the current preview's complete approval. An empty discovery result is a gap, not permission to invent a resource. Without `--decisions`, the same blueprint workflow uses the disclosed local rules. An imported proposal must match the current context digest, cite known evidence and bind every selected task, including explicit empty resource arrays. New requirement/domain interpretations need literal user/project evidence quotes. Quotes and IDs provide traceability, not proof that an interpretation is correct. Provider labels are unverified claims. Explicit scope exclusions, required review responsibilities and source policy cannot be bypassed by a model proposal.
 
-One approval writes the selected skill files, generated role definitions, inert MCP proposals, `.stratagent/task-plan.json` and `.stratagent/blueprint.json`, with reviewed-source provenance and hashes under one lock entry. Existing compatible standalone installations are reused without overwriting them. The allowlist remains a separate gate; there is no automatic MCP activation or agent launch. Repeat the same blueprint/decision to verify and no-op. Files, inputs, sources or decisions changing invalidates approval. Automatic upgrades/migration remain unsupported; use a fresh workspace for changed installed plans.
+One approval writes the selected skill files, generated role definitions, inert MCP proposals, `.stratagent/task-plan.json` and `.stratagent/blueprint.json`, with reviewed-source provenance and hashes under one lock entry. Existing compatible standalone installations are reused without overwriting them. The allowlist remains a separate gate; there is no automatic MCP activation or agent launch. Repeating the same approved effect verifies/no-ops. Files, policy, inputs, sources, installed state or decisions changing invalidates approvals for new mutations. Version 0.5 supports explicit reviewed updates/removal and a version 1 → 2 lock migration, not unattended upgrades.
+
+## Review, update and recover
+
+```sh
+# After source review and exact repository allowances:
+.venv/bin/stratagent stage blueprint --decisions decision.json --workspace ./my-agent
+# Inspect the returned plan, diff, blockers and approval before applying:
+.venv/bin/stratagent apply STAGE_ID --approve EXACT_PLAN_SHA256 --workspace ./my-agent
+.venv/bin/stratagent verify --workspace ./my-agent
+
+# For changed requirements/targets, separately stage a complete revised request:
+.venv/bin/stratagent stage revise --prompt "Small Python API. Privacy required. No payments." \
+  --platforms generic --workspace ./my-agent
+# Approve/apply that revision, then start fresh runtime research and stage its blueprint.
+
+# Review interrupted work before issuing another write:
+.venv/bin/stratagent recover --workspace ./my-agent
+.venv/bin/stratagent recover --apply --approve EXACT_RECOVERY_SHA256 --workspace ./my-agent
+```
+
+Staging does not install. Apply recomputes the selected plan, rechecks source reviews and research freshness, and rejects stale approvals. Updates replace/delete only files owned by that installation; unowned files, user edits, permission drift and cross-installation dependencies block the change. `stage remove --key KEY` uses exact installation keys from `status`; it never deletes the project or global settings. Backups include private prompt/instruction text: keep `.stratagent` out of version control and use a restricted user-owned directory (Windows inherits its ACLs). Recovery restores the pretransaction files/lock before the commit point, or finalizes a fully committed operation; it refuses conflicting external edits. See [lifecycle.md](docs/lifecycle.md) for limits and examples.
 
 `status` distinguishes the approved decision from current rule analysis and reports whether its input context is still current. `configure` is a lower-level alternative for separate setup, not an additional step after an approved blueprint.
 
@@ -172,6 +195,7 @@ Review a candidate using its `id` from the JSON output:
 
 # After reviewing all source files, licenses, findings and output paths:
 .venv/bin/stratagent allow owner/repo --workspace ./my-agent
+.venv/bin/stratagent install CANDIDATE_ID --content --workspace ./my-agent
 .venv/bin/stratagent install CANDIDATE_ID --apply \
   --approve APPROVAL_SHA256 --workspace ./my-agent
 ```
@@ -204,7 +228,7 @@ Configuration produces a task graph covering architecture, implementation, testi
 
 The analysis reports `domain_evidence`, `requirements`, `open_questions`, specialist tasks and `architecture.parallel_waves`. Inspection reads only root manifests and manifests inside up to eight immediate packages in each of `apps/` and `packages/`. It recognizes `package.json`, `pyproject.toml`, `requirements.txt`, `Cargo.toml` and `go.mod`, with a 256 KiB file limit. Only known dependency names, evidence paths and content hashes enter the plan. Scripts, source files, `.env`, private dependency names and credentials are not included. Symlinks, malformed manifests and truncation produce explicit warnings.
 
-Local analysis uses bounded English/Turkish scope rules and dependency evidence. It recognizes supported exclusions/deferrals and compares coordination alternatives, but does not claim unrestricted language understanding or full source-code architecture analysis. `decision-request` and `blueprint --decisions` accept grounded judgments from your current model or a human. Review evidence and open questions. Project changes invalidate old decision contexts and configuration approvals. Existing installed output is immutable; automatic upgrades/removal are not supported.
+Local analysis uses bounded English/Turkish scope rules and dependency evidence. It recognizes supported exclusions/deferrals and compares coordination alternatives, but does not claim unrestricted language understanding or full source-code architecture analysis. `decision-request` and `blueprint --decisions` accept grounded judgments from your current model or a human. Review evidence and open questions. Project changes invalidate old decision contexts and configuration approvals. Installed output changes require a new reviewed lifecycle plan; discovery never automatically upgrades it.
 
 ## Discover and review MCP servers
 
@@ -215,6 +239,7 @@ Local analysis uses bounded English/Turkish scope rules and dependency evidence.
 
 # For npm proposals, also review and allow the exact source repository:
 .venv/bin/stratagent allow owner/repo --workspace ./my-agent
+.venv/bin/stratagent configure-mcp MCP_ID --option 0 --content --workspace ./my-agent
 .venv/bin/stratagent configure-mcp MCP_ID --option 0 --apply \
   --approve MCP_PROPOSAL_APPROVAL_SHA256 --workspace ./my-agent
 .venv/bin/stratagent verify --workspace ./my-agent
@@ -268,6 +293,13 @@ All results are JSON. `--workspace` and `--log-json` work before or after the su
 | `inspect ID --content` | Read findings and all cached, untrusted source text |
 | `recommend` | Suggest eligible candidates for each task |
 | `allow owner/repo` | Explicitly allow one exact repository locally |
+| `doctor` | Read-only local filesystem capabilities, permission/durability caveats and release status |
+| `stage KIND` | Persist a blueprint/configuration/resource/removal/request revision plan and exact diff |
+| `apply ID --approve HASH` | Revalidate and transactionally apply one staged plan; never activate |
+| `revise PROMPT` | Preview a new planning request/targets; `--apply --approve HASH` is separate |
+| `remove KEY` | Preview/remove one owned installation; dependency/drift conflicts fail closed |
+| `recover` | Preview interrupted work; `--apply --approve HASH` explicitly authorizes recovery |
+| `transactions` | List local transaction IDs/states without private backup contents |
 | `install ID` | Preview by default; write only with `--apply --approve HASH` |
 | `configure` | Preview or approve generated task configurations |
 | `verify` | Check SHA-256 hashes of every locked output |
@@ -306,7 +338,7 @@ my-agent/
 
 Skill adapters emit only `name` and `description` metadata and preserve relative text references and license/notice files. Original source content remains in the evidence cache. Claude sub-agents use `Read, Grep, Glob` and `permissionMode: plan`; Antigravity agents use a constrained read-only tool list and shell execution policy `off`. The parent environment's permission settings also apply. Codex roles are represented as portable skills, not native multi-agent runtime configuration.
 
-StratAgent does not change user-authored `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.mcp.json`, `.codex/config.toml`, `.agents/mcp_config.json`, global host settings, hooks or existing files. Conflicts stop installation. Upgrades and removal are not automated yet.
+StratAgent does not change user-authored `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.mcp.json`, `.codex/config.toml`, `.agents/mcp_config.json`, global host settings or hooks. Unowned file conflicts stop installation, even for identical bytes. Reviewed updates/removal affect only recorded managed outputs and refuse drift.
 
 ## Security boundaries
 
@@ -318,7 +350,7 @@ StratAgent does not change user-authored `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, 
 - **Conservative file policy.** Symlinks, executables, submodules, traversal, absolute paths, control characters, non-portable paths and oversized/non-text content are refused. Installable bundles contain only `.md`, `.txt`, `.rst` and license/notice text. YAML, JSON, scripts and binaries block a bundle, including otherwise valid skills containing `agents/openai.yaml`.
 - **Static risk signals.** Rules flag instruction overrides, remote shell execution, destructive commands, credential access and active permission/hook configuration. Security documentation can trigger false positives. These checks are not proof of safety; review every file before approval.
 - **Conservative license matching.** Full supported license bodies are compared with pinned reference texts. Missing, unknown, customized or conflicting licenses are blocked. Supported texts are MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause and ISC. A match does not establish legal compatibility; review the actual notices and obligations.
-- **Controlled local writes.** A directory lock serializes mutations. Ordinary failures roll back newly created files. Existing files are never overwritten; identical reinstallation verifies content before returning a no-op. There is no filesystem-wide power-loss transaction guarantee; run `verify` after interruption.
+- **Controlled local writes.** Persistent native kernel locks serialize POSIX/Windows mutations. Reviewed transactions back up bytes/mode semantics, journal before output changes, migrate ownership under exact approval and restore precommit failures. A lockfile replacement is the commit point. Interrupted writes block further mutation until explicitly reviewed recovery; identical repeated effects no-op. User edits/read-only files are never force-overwritten. Windows inherits directory ACLs rather than emulating private POSIX permissions. Multi-file visibility is not atomic for concurrent readers; physical power-loss/network-filesystem behavior is not certified. Quiesce hosts during updates and run `verify` afterwards.
 
 The local user and operating system are trusted. There is no signature/attestation protection against an attacker who can rewrite the manifest, cache and lockfile together, or OS sandbox protection against hostile concurrent replacement of parent directories. Activated skills remain subject to the coding environment's own security boundaries.
 
@@ -372,4 +404,4 @@ Primary sources checked on October 18–19, 2026:
 - [OpenAI skills](https://github.com/openai/skills), [Anthropic skills](https://github.com/anthropics/skills) and [VoltAgent sub-agents](https://github.com/VoltAgent/awesome-claude-code-subagents)
 - [SPDX license texts](https://github.com/spdx/license-list-data); pinned reference commits/hashes are in `src/stratagent/data/license_sources.json`.
 
-StratAgent source code is MIT-licensed. Discovered resources retain their own licenses. Version 0.3.2 requires new dry-run approvals. Existing installations remain immutable and automatic migration/upgrades are not provided. Use a fresh workspace for changed generated configuration rather than editing approval-bound state by hand.
+StratAgent source code is MIT-licensed. Discovered resources retain their own licenses. Version 0.5 requires fresh previews/approvals and explicitly reviewed lock migration. Do not edit approval-bound state by hand. This remains a developer preview, not a production/GA claim.

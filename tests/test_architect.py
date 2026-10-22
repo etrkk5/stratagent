@@ -278,6 +278,7 @@ class ArchitectIntegrationTests(unittest.TestCase):
         self.forge.allow(candidate["repo"])
         with self.assertRaisesRegex(StratagentError, "Approval digest"):
             self.forge.configure_mcp(candidate["id"], approval="yes", apply=True)
+        plan = self.forge.configure_mcp(candidate["id"])
         result = self.forge.configure_mcp(candidate["id"], approval=plan["approval"], apply=True)
         self.assertTrue(result["applied"])
         self.assertTrue(self.forge.verify()["ok"])

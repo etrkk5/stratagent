@@ -1,7 +1,6 @@
 import json
 import os
 from pathlib import Path
-import select
 import subprocess
 import sys
 import tempfile
@@ -18,6 +17,7 @@ from stratagent.registry import Registry
 from stratagent.service import Stratagent
 from stratagent.planner import analyze
 from test_runtime_research import PROMPT, model_plan
+from process_support import wait_ready
 
 
 class PlanningRecoveryTests(unittest.TestCase):
@@ -45,10 +45,7 @@ class PlanningRecoveryTests(unittest.TestCase):
             process.stderr.close()
 
         self.addCleanup(cleanup)
-        ready, _, _ = select.select([process.stdout], [], [], 10)
-        self.assertTrue(ready, "Worker did not reach its durable checkpoint.")
-        line = process.stdout.readline().strip()
-        self.assertEqual(line, "ready", process.stderr.read() if process.poll() is not None else "Worker checkpoint was not reached.")
+        wait_ready(self, process)
         return process
 
     def test_clarification_pauses_without_search_and_only_operator_changes_scope(self):
@@ -173,7 +170,6 @@ class PlanningRecoveryTests(unittest.TestCase):
             self.driver.submit(started["session"]["id"], started["model_request"]["request_id"], {"action": "execute"})
         self.assertNotIn("Unsupported model action", json.dumps(self.driver.status(started["session"]["id"])))
 
-    @unittest.skipUnless(os.name == "posix", "POSIX process-death lock recovery; Windows remains outside the validated scope")
     def test_sigkill_releases_workspace_mutex_without_manual_lock_deletion(self):
         self.service.init(PROMPT, ["generic"])
         process = self.worker("import sys,time\nfrom stratagent.workspace import Workspace\nwith Workspace(sys.argv[1]).mutation():\n print('ready',flush=True)\n time.sleep(120)\n")
@@ -186,7 +182,6 @@ class PlanningRecoveryTests(unittest.TestCase):
             self.service.ws.write(".stratagent/recovered.json", {"recovered": True})
         self.assertTrue(self.service.ws.read(".stratagent/recovered.json")["recovered"])
 
-    @unittest.skipUnless(os.name == "posix", "POSIX forced-process termination")
     def test_sigkill_during_network_wait_retains_reservation_and_never_replays(self):
         started = self.driver.start(PROMPT, ["generic"])
         proposed = self.driver.submit(started["session"]["id"], started["model_request"]["request_id"], {"action": "research", "plan": model_plan(self.service, github=False)})
@@ -205,7 +200,6 @@ class PlanningRecoveryTests(unittest.TestCase):
         with self.assertRaisesRegex(StratagentError, "not awaiting"):
             self.driver.search(session_id, proposed["search_review"]["approval"])
 
-    @unittest.skipUnless(os.name == "posix", "POSIX forced-process termination")
     def test_sigkill_between_answer_metadata_writes_recovers_exact_intent(self):
         clarified = self.clarify()
         session_id = clarified["session"]["id"]

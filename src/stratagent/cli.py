@@ -14,6 +14,7 @@ from .planner import analyze
 from .project import inspect_project
 from .service import Stratagent
 from .workspace import Workspace
+from .lifecycle import Transactions
 
 
 def parser():
@@ -37,6 +38,7 @@ def parser():
         "session-answer": "Answer model questions with a complete revised prompt before installation; invalidates old context/approvals",
         "plan": "Analyze a prompt without writing files",
         "platforms": "List adapter capabilities and portable export support without reading a workspace",
+        "doctor": "Report local OS/filesystem capabilities without writes, network or credentials",
         "decision-request": "Export grounded context and a provider-independent architectural decision schema",
         "blueprint": "Review or approve one plan for architecture, selected skills and inert MCP proposals",
         "discover": "Find pinned GitHub definitions and cache review evidence",
@@ -48,6 +50,12 @@ def parser():
         "allow": "Explicitly allow one exact repository in this workspace",
         "install": "Preview an installation; --apply requires an exact approval digest",
         "configure": "Preview or apply generated task configurations",
+        "stage": "Persist an exact reviewed lifecycle proposal and diff; never install or activate",
+        "apply": "Apply one staged plan with exact approval and crash-recovery journal",
+        "remove": "Review/remove one managed installation, preserving user-owned files",
+        "revise": "Review/revise the operator's planning request/targets; does not update installed outputs",
+        "recover": "Review or approve recovery of one interrupted local environment transaction",
+        "transactions": "List private local transaction IDs/states without backup contents",
         "verify": "Verify hashes of all locked outputs",
         "status": "Show workspace, candidates, policy and verification",
         "serve": "Run default read-only stdio MCP, or opt into one session's proposal-only tools",
@@ -56,8 +64,25 @@ def parser():
         sub = commands.add_parser(name, help=help_text)
         sub.add_argument("--workspace", default=argparse.SUPPRESS, help="Project directory (demo may create it)")
         sub.add_argument("--log-json", action="store_true", default=argparse.SUPPRESS, help="Emit structured events to stderr")
-        if name in ("init", "plan", "prepare", "research-request", "research-preview", "session-start"):
+        if name in ("init", "plan", "prepare", "research-request", "research-preview", "session-start", "revise"):
             sub.add_argument("prompt")
+        if name == "revise":
+            sub.add_argument("--platforms", help="Revised target IDs; preserve current selection by default")
+        if name == "stage":
+            sub.add_argument("kind", choices=("blueprint", "configure", "install", "configure-mcp", "remove", "revise"))
+            sub.add_argument("--candidate-id")
+            sub.add_argument("--option", type=int, default=0)
+            sub.add_argument("--key", help="Exact installation key from status for removal")
+            sub.add_argument("--prompt", help="Complete operator-authored revised request")
+            sub.add_argument("--platforms", help="Revised target IDs, only for revise")
+            sub.add_argument("--decisions", help="Workspace-relative reviewed architectural decision JSON")
+            sub.add_argument("--run", help="Exact research run; current evidence/freshness is rechecked on apply")
+            sub.add_argument("--session", help="Final existing-host orchestration; incompatible with --decisions/--run")
+        if name == "apply":
+            sub.add_argument("stage_id")
+            sub.add_argument("--approve", required=True)
+        if name == "remove":
+            sub.add_argument("key", help="Exact installation key from status")
         if name == "init":
             sub.add_argument("--platforms", default=",".join(DEFAULT_TARGETS), help="Comma-separated adapter IDs; see stratagent platforms")
             sub.add_argument("--no-scan-project", action="store_true", help="Use only the prompt; skip bounded local manifest inspection")
@@ -114,7 +139,7 @@ def parser():
             sub.add_argument("--content", action="store_true", help="Include all cached untrusted text for human review")
         if name == "allow":
             sub.add_argument("repo")
-        if name in ("install", "configure", "configure-mcp", "blueprint"):
+        if name in ("install", "configure", "configure-mcp", "blueprint", "remove", "revise", "recover"):
             mode = sub.add_mutually_exclusive_group()
             mode.add_argument("--dry-run", action="store_true", help="Default; write nothing")
             mode.add_argument("--apply", action="store_true", help="Write only after matching --approve")
@@ -141,6 +166,12 @@ def main(argv=None):
     try:
         if args.command == "platforms":
             result = catalog()
+        elif args.command == "doctor":
+            workspace = Workspace(args.workspace)
+            result = {"tool": "StratAgent", "version": __version__, "filesystem": workspace.fs.capabilities(),
+                      "scope": "local-filesystem-process-recovery", "production_ready": False,
+                      "notes": ["Filesystem capabilities are not release certification. See docs/production-readiness.md.",
+                                "Windows uses inherited ACLs; place private state in a restricted user-owned directory."]}
         elif args.command == "plan":
             result = analyze(args.prompt, inspect_project(Workspace(args.workspace)) if args.scan_project else None)
         elif args.command == "demo":
@@ -189,12 +220,42 @@ def main(argv=None):
                 result = forge.recommend()
             elif args.command == "decision-request":
                 result = forge.decision_request(args.run)
-            elif args.command in ("install", "configure", "configure-mcp", "blueprint"):
+            elif args.command == "stage":
+                irrelevant = {"candidate_id": ("install", "configure-mcp"), "key": ("remove",), "prompt": ("revise",),
+                              "platforms": ("revise",), "decisions": ("blueprint",), "run": ("blueprint",), "session": ("blueprint",)}
+                if any(getattr(args, field) is not None and args.kind not in kinds for field, kinds in irrelevant.items()) or (args.option != 0 and args.kind != "configure-mcp"):
+                    raise StratagentError("Stage options do not match the selected operation.")
+                selection = {}
+                if args.kind == "blueprint":
+                    if args.session and (args.decisions or args.run):
+                        raise StratagentError("--session cannot be combined with --decisions or --run.")
+                    selection = Orchestrator(forge).review(args.session) if args.session else {"decisions": forge.ws.read(args.decisions) if args.decisions else None, "run_id": args.run}
+                elif args.kind in ("install", "configure-mcp"):
+                    if not args.candidate_id:
+                        raise StratagentError("This stage requires --candidate-id.")
+                    selection = {"candidate_id": args.candidate_id, "option": args.option}
+                elif args.kind == "remove":
+                    selection = {"key": args.key}
+                elif args.kind == "revise":
+                    selection = {"prompt": args.prompt, "targets": args.platforms.split(",") if args.platforms is not None else None}
+                result = forge.stage(args.kind, **selection)
+            elif args.command == "apply":
+                result = forge.apply_stage(args.stage_id, args.approve)
+            elif args.command == "transactions":
+                result = Transactions(forge.ws).history()
+            elif args.command in ("install", "configure", "configure-mcp", "blueprint", "remove", "revise", "recover"):
                 if args.approve and not args.apply:
                     raise StratagentError("--approve must be used with --apply; dry-run writes nothing.")
                 if args.content and args.apply:
                     raise StratagentError("--content is for dry-run review; remove --apply to inspect generated files.")
-                if args.command == "install":
+                if args.command == "recover":
+                    result, files = forge.recover(args.approve, args.apply), None
+                elif args.command == "remove":
+                    result, files = forge.preview_removal(args.key) if args.content else (forge.remove(args.key, args.approve, args.apply), None)
+                elif args.command == "revise":
+                    targets = args.platforms.split(",") if args.platforms is not None else None
+                    result, files = forge.preview_revision(args.prompt, targets) if args.content else (forge.revise(args.prompt, targets, args.approve, args.apply), None)
+                elif args.command == "install":
                     result, files = forge.preview(args.candidate_id) if args.content else (forge.install(args.candidate_id, args.approve, args.apply), None)
                 elif args.command == "configure-mcp":
                     result, files = forge.preview_mcp(args.candidate_id, args.option) if args.content else (forge.configure_mcp(args.candidate_id, args.option, args.approve, args.apply), None)
@@ -207,6 +268,7 @@ def main(argv=None):
                     result, files = forge.preview_config() if args.content else (forge.configure(args.approve, args.apply), None)
                 if files is not None:
                     result["file_contents"] = {path: data.decode("utf-8") for path, data in sorted(files.items())}
+                    result["diff"] = Transactions(forge.ws).diff(result, files)
             elif args.command == "verify":
                 result = forge.verify()
             else:

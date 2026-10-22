@@ -51,7 +51,7 @@ def safe_path(value):
     p = PurePosixPath(value)
     if p.is_absolute() or any(x in ("", ".", "..") for x in value.split("/")):
         raise StratagentError("Absolute paths and traversal are forbidden.")
-    if any(x.endswith((".", " ")) or x.lower().split(".")[0] in {"con", "prn", "aux", "nul", *(f"com{i}" for i in range(1, 10)), *(f"lpt{i}" for i in range(1, 10))} for x in p.parts):
+    if any(x.endswith((".", " ")) or x.lower().split(".")[0].rstrip(" ") in {"con", "prn", "aux", "nul", "conin$", "conout$", *(f"com{i}" for i in range(1, 10)), *(f"lpt{i}" for i in range(1, 10))} for x in p.parts):
         raise StratagentError("Non-portable path.")
     return value
 

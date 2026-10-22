@@ -100,7 +100,9 @@ class BlueprintTests(unittest.TestCase):
             self.service.blueprint(approval=before["approval"], apply=True)
         self.allow()
         plan = self.service.blueprint()
-        self.assertEqual(plan["approval"], before["approval"])
+        self.assertNotEqual(plan["approval"], before["approval"])
+        with self.assertRaisesRegex(StratagentError, "Approval digest"):
+            self.service.blueprint(approval=before["approval"], apply=True)
         with self.assertRaisesRegex(StratagentError, "Approval digest"):
             self.service.blueprint(approval="yes", apply=True)
         result = self.service.blueprint(approval=plan["approval"], apply=True)

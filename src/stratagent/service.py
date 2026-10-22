@@ -1,5 +1,7 @@
 """Shared application services for CLI and a read-only MCP surface."""
 import hmac
+import re
+import uuid
 from datetime import datetime, timezone
 
 from . import __version__
@@ -17,6 +19,7 @@ from .research import RESEARCH_SCHEMA, preview as preview_research, project_cont
 from .sessions import load as load_session
 from .security import assess, unpack
 from .workspace import Workspace
+from .lifecycle import Transactions, validate_lock
 
 MANIFEST = ".stratagent/manifest.json"
 LOCK = ".stratagent/lock.json"
@@ -59,27 +62,15 @@ class Stratagent:
         return value
 
     def lock(self):
-        value = self.ws.read(LOCK)
-        if not isinstance(value, dict) or value.get("schema_version") != 1 or not isinstance(value.get("installations"), dict):
-            raise StratagentError("Invalid lockfile schema.")
-        for installation in value["installations"].values():
-            if not isinstance(installation, dict) or not isinstance(installation.get("outputs"), list):
-                raise StratagentError("Invalid lockfile installation record.")
-            for output in installation["outputs"]:
-                if (not isinstance(output, dict) or not isinstance(output.get("path"), str)
-                        or type(output.get("size")) is not int or output["size"] < 0
-                        or not isinstance(output.get("sha256"), str) or len(output["sha256"]) != 64
-                        or any(char not in "0123456789abcdef" for char in output["sha256"])):
-                    raise StratagentError("Invalid lockfile output record.")
-        return value
+        return validate_lock(self.ws.read(LOCK))
 
     def init(self, prompt, targets, scan_project=True):
         result = {"schema_version": 1, "name": "StratAgent workspace", "created_at": now(),
                   "platforms": platforms(targets), "analysis": analyze(prompt, inspect_project(self.ws) if scan_project else None),
                   "candidates": {}, "mcp_candidates": {}}
         with self.ws.mutation():
-            if self.ws.path(MANIFEST).exists():
-                raise StratagentError("Workspace already initialized; refusing to replace the manifest.")
+            if any(self.ws.path(relative).exists() for relative in (MANIFEST, LOCK, POLICY)):
+                raise StratagentError("Workspace already initialized or contains partial state; refusing to replace its manifest, ownership lock or policy. Inspect/restore existing state before retrying.")
             self.ws.write(POLICY, {"schema_version": 1, "allow_repositories": []})
             self.ws.write(LOCK, {"schema_version": 1, "generator_version": __version__, "installations": {}})
             self.ws.write(MANIFEST, result)
@@ -97,10 +88,10 @@ class Stratagent:
         existing = self.manifest() if self.ws.path(MANIFEST).exists() else None
         if existing:
             if prompt is not None and analyze(prompt)["prompt"] != existing["analysis"]["prompt"]:
-                raise StratagentError("Existing workspace request differs; use a fresh workspace for another project.")
+                raise StratagentError("Existing workspace request differs; separately review stratagent revise before researching changed requirements.")
             selected = platforms(targets if targets is not None else existing["platforms"])
             if selected != platforms(existing["platforms"]):
-                raise StratagentError("Existing workspace targets differ; use a fresh workspace.")
+                raise StratagentError("Existing workspace targets differ; separately review stratagent revise --platforms before changing targets.")
             analysis = self.analysis(existing)
         else:
             analysis = analyze(prompt, inspect_project(self.ws))
@@ -300,7 +291,7 @@ class Stratagent:
         def collect(rendered, key, review):
             previous = lock["installations"].get(key)
             if previous and previous["review_digest"] != review["review_digest"]:
-                raise StratagentError("Selected resource differs from its installed review; automatic upgrades are not supported.")
+                raise StratagentError("Selected standalone resource differs from its installed review; separately stage/review its update after removing dependent configurations. A blueprint cannot silently rewrite another installation.")
             owned = {output["path"]: output for output in previous["outputs"]} if previous else {}
             pending = {}
             for path, data in rendered.items():
@@ -346,7 +337,7 @@ class Stratagent:
         merge_outputs(files, {".stratagent/task-plan.json": canonical(task_config) + b"\n", ".stratagent/blueprint.json": canonical(blueprint) + b"\n"})
         plan = self._plan(files, {"kind": "workspace-blueprint", "blueprint": blueprint, "reviewed_sources": sources,
                                  "reused_outputs": sorted(reused, key=lambda output: output["path"])},
-                          "reviewed-workspace-blueprint", identity(blueprint))
+                          "reviewed-workspace-blueprint", identity(blueprint), "workspace-blueprint")
         allowed = set(self.policy()["allow_repositories"])
         missing = sorted(required_repositories - allowed)
         blockers = list(blueprint["blockers"])
@@ -412,7 +403,7 @@ class Stratagent:
         files = render_server(review, option, self.manifest()["platforms"])
         plan = self._plan(files, {"kind": "mcp-proposal", "candidate_id": candidate_id, "metadata_sha256": review["metadata_sha256"],
                                  "server_version": review["version"], "option": option, "repo": review["repo"],
-                                 "selected_transport": review["options"][option]}, review["origin"], review["review_digest"])
+                                 "selected_transport": review["options"][option]}, review["origin"], review["review_digest"], f"mcp-proposal:{candidate_id}:{option}")
         plan.update({"dry_run": True, "activation": "manual-only", "findings": review["findings"],
                      "repository_allowed": review["repo"] in self.policy()["allow_repositories"],
                      "note": "Approval writes inert proposals only. Review source, tool permissions and credentials before manually enabling in your host."})
@@ -427,12 +418,16 @@ class Stratagent:
                 raise StratagentError("Package source repository is not allowed. Review it, then run allow owner/repo.")
             return self._apply(plan, files, approval, f"mcp-proposal:{candidate_id}:{option}")
 
-    def _plan(self, files, source, origin, review_digest):
+    def _plan(self, files, source, origin, review_digest, key):
         outputs = [{"path": p, "sha256": digest(d), "size": len(d)} for p, d in sorted(files.items())]
         payload = {"schema_version": 1, "workspace": str(self.ws.root), "generator_version": __version__,
                    "platforms": platforms(self.manifest()["platforms"]),
-                   "source": source, "origin": origin, "review_digest": review_digest, "outputs": outputs}
+                   "source": source, "origin": origin, "review_digest": review_digest, "outputs": outputs,
+                   "lifecycle": Transactions(self.ws).preview(key, files, self._lifecycle_context(), source.get("kind") == "removal")}
         return {**payload, "approval": identity(payload)}
+
+    def _lifecycle_context(self):
+        return {"manifest": self.manifest(), "policy": self.policy(), "analysis": self.analysis(), "filesystem": self.ws.fs.capabilities()}
 
     def preview(self, candidate_id):
         manifest = self.manifest()
@@ -443,7 +438,7 @@ class Stratagent:
         plan = self._plan(files, {"candidate_id": candidate_id, "repo": review["repo"],
                                  "commit": review["commit"], "entry": review["entry"],
                                  "license": review["license"], "source_files": review["files"]},
-                          review["origin"], review["review_digest"])
+                          review["origin"], review["review_digest"], "candidate:" + candidate_id)
         policy = self.policy()
         plan["repository_allowed"] = review["repo"] in policy["allow_repositories"]
         plan["dry_run"] = True
@@ -455,7 +450,7 @@ class Stratagent:
         expected = self.analysis(manifest)
         lock = self.lock()
         if "workspace-blueprint" in lock["installations"]:
-            raise StratagentError("This workspace uses an approved blueprint. Repeat blueprint with the same decisions to verify/no-op; use a fresh workspace for configuration changes.")
+            raise StratagentError("This workspace uses an approved blueprint. Review an updated blueprint rather than overwriting its task configuration.")
         if not self.verify()["ok"]:
             raise StratagentError("Installed files have drift; resolve verification before configuring tasks.")
         assignments = []
@@ -474,32 +469,129 @@ class Stratagent:
         files = render_tasks(task_config, manifest["platforms"])
         from .common import canonical
         files[".stratagent/task-plan.json"] = canonical(task_config) + b"\n"
-        plan = self._plan(files, {"kind": "task-configuration", "task_plan": task_config}, "generated-local", identity(task_config))
+        plan = self._plan(files, {"kind": "task-configuration", "task_plan": task_config}, "generated-local", identity(task_config), "task-configuration")
         plan["dry_run"] = True
         return plan, files
 
     def _apply(self, plan, files, approval, key):
-        if not isinstance(approval, str) or not hmac.compare_digest(approval, plan["approval"]):
-            raise StratagentError("Approval digest does not match this exact plan. Run dry-run, review, and approve that digest.")
         lock = self.lock()
+        transaction = Transactions(self.ws)
+        if self.ws.path(".stratagent/transaction.json").exists():
+            journal = transaction.load_journal()
+            if journal["state"] == "committed" and journal["key"] == key and journal["approval"] == approval:
+                if all(transaction.snapshot(entry["path"]) == entry["after"] for entry in journal["entries"]) and self.verify()["ok"]:
+                    if plan["lifecycle"]["operation"] in ("remove", "revise") and all(entry["action"] == "unchanged" for entry in plan["lifecycle"]["changes"]):
+                        return {"applied": False, "already_applied": True, "approval": approval}
+        if plan["lifecycle"]["blockers"]:
+            for blocker in plan["lifecycle"]["blockers"]:
+                if blocker["rule"] == "unsafe-output":
+                    self.ws.path(blocker["path"])
+            raise StratagentError("Managed outputs changed or conflict: refusing to overwrite user files, drift or resources in use.")
         if key in lock["installations"]:
             previous = lock["installations"][key]
-            if previous.get("approval") == approval:
+            if approval in (previous.get("approval"), plan["approval"]):
                 mismatches = self.verify()["mismatches"]
                 if mismatches:
                     raise StratagentError("Installed files changed; verify reports drift. Refusing to overwrite.")
-                return {"applied": False, "already_installed": True, "approval": approval}
-            raise StratagentError("An older installation exists; automatic upgrades are not supported in this MVP.")
-        created = self.ws.create_files(files)
-        try:
-            lock["installations"][key] = {**plan, "dry_run": False, "installed_at": now(),
-                                         "provenance": {"tool": "StratAgent", "version": __version__, "execution": "none"}}
-            self.ws.write(LOCK, lock)
-        except BaseException:
-            for path in reversed(created):
-                self.ws.path(path).unlink()
-            raise
-        return {"applied": True, "approval": approval, "written": created, "lockfile": LOCK}
+                if all(previous.get(field) == plan.get(field) for field in ("source", "review_digest", "platforms", "generator_version")) and [{name: output[name] for name in ("path", "sha256", "size")} for output in previous["outputs"]] == plan["outputs"]:
+                    return {"applied": False, "already_installed": True, "approval": approval}
+        if not isinstance(approval, str) or not hmac.compare_digest(approval, plan["approval"]):
+            raise StratagentError("Approval digest does not match this exact plan. Run dry-run, review, and approve that digest.")
+        return Transactions(self.ws).execute(plan, files, key, lock)
+
+    def preview_removal(self, key):
+        if not isinstance(key, str) or not key:
+            raise StratagentError("Select an exact installation key from status.")
+        source = {"kind": "removal", "installation": key}
+        plan = self._plan({}, source, "managed-removal", identity(source), key)
+        plan["dry_run"] = True
+        return plan, {}
+
+    def remove(self, key, approval=None, apply=False):
+        if not apply:
+            return self.preview_removal(key)[0]
+        with self.ws.mutation():
+            plan, files = self.preview_removal(key)
+            return self._apply(plan, files, approval, key)
+
+    def preview_revision(self, prompt, targets=None):
+        manifest = self.manifest()
+        manifest["analysis"] = analyze(prompt, inspect_project(self.ws) if manifest["analysis"].get("project") is not None else None)
+        manifest["platforms"] = platforms(targets if targets is not None else manifest["platforms"])
+        files = {MANIFEST: canonical(manifest) + b"\n"}
+        source = {"kind": "workspace-request", "prompt": manifest["analysis"]["prompt"], "targets": manifest["platforms"]}
+        plan = self._plan(files, source, "operator-revised-request", identity(source), "workspace-request")
+        plan.update(dry_run=True, note="Revises planning context only, not installed outputs. Research and review a new blueprint afterwards; old decisions and approvals become stale.")
+        return plan, files
+
+    def revise(self, prompt, targets=None, approval=None, apply=False):
+        if not apply:
+            return self.preview_revision(prompt, targets)[0]
+        with self.ws.mutation():
+            plan, files = self.preview_revision(prompt, targets)
+            return self._apply(plan, files, approval, "workspace-request")
+
+    def _selection(self, kind, candidate_id=None, option=0, decisions=None, run_id=None, key=None, prompt=None, targets=None):
+        if kind == "blueprint":
+            return self.preview_blueprint(decisions, run_id), "workspace-blueprint"
+        if kind == "configure":
+            return self.preview_config(), "task-configuration"
+        if kind == "install":
+            return self.preview(candidate_id), "candidate:" + str(candidate_id)
+        if kind == "configure-mcp":
+            return self.preview_mcp(candidate_id, option), f"mcp-proposal:{candidate_id}:{option}"
+        if kind == "remove":
+            return self.preview_removal(key), key
+        if kind == "revise":
+            return self.preview_revision(prompt, targets), "workspace-request"
+        raise StratagentError("Unsupported staged operation.")
+
+    def _authorization(self, plan):
+        if plan.get("blockers") or plan["lifecycle"]["blockers"]:
+            raise StratagentError("Plan has unresolved blockers, drift or output conflicts; review before staging/applying.")
+        if plan.get("repository_allowed") is False and (plan["source"].get("selected_transport", {}).get("type") != "http"):
+            raise StratagentError("Repository is not allowed; review its exact source before staging/applying.")
+
+    def stage(self, kind, **selection):
+        with self.ws.mutation():
+            (plan, files), key = self._selection(kind, **selection)
+            self._authorization(plan)
+            stage_id = uuid.uuid4().hex
+            record = {"schema_version": 1, "id": stage_id, "workspace": str(self.ws.root), "kind": kind,
+                      "selection": selection, "key": key, "plan": plan}
+            record["digest"] = identity(record)
+            self.ws.write(f".stratagent/stages/{stage_id}.json", record)
+            return {"stage_id": stage_id, "plan": plan, "diff": Transactions(self.ws).diff(plan, files), "activation": "none"}
+
+    def apply_stage(self, stage_id, approval):
+        if not isinstance(stage_id, str) or not re.fullmatch(r"[0-9a-f]{32}", stage_id):
+            raise StratagentError("Stage ID must be 32 hexadecimal characters.")
+        with self.ws.mutation():
+            record = self.ws.read(f".stratagent/stages/{stage_id}.json")
+            if (not isinstance(record, dict) or record.get("schema_version") != 1 or record.get("id") != stage_id
+                    or record.get("workspace") != str(self.ws.root)
+                    or record.get("digest") != identity({key: item for key, item in record.items() if key != "digest"})):
+                raise StratagentError("Invalid, changed or foreign staged plan.")
+            if not isinstance(approval, str) or not hmac.compare_digest(approval, record["plan"]["approval"]):
+                raise StratagentError("Approval digest does not match the staged plan.")
+            transaction = Transactions(self.ws)
+            if self.ws.path(".stratagent/transaction.json").exists():
+                journal = transaction.load_journal()
+                if journal["stage_id"] == stage_id and journal["state"] == "committed":
+                    if all(transaction.snapshot(entry["path"]) == entry["after"] for entry in journal["entries"]):
+                        return {"applied": False, "already_installed": True, "stage_id": stage_id}
+                    raise StratagentError("Applied stage has changed; review a fresh plan.")
+            (plan, files), key = self._selection(record["kind"], **record["selection"])
+            self._authorization(plan)
+            if key != record["key"] or plan["approval"] != approval:
+                raise StratagentError("Staged plan is stale; stage/review again before approval.")
+            return transaction.execute(plan, files, key, self.lock(), stage_id)
+
+    def recover(self, approval=None, apply=False):
+        if not apply:
+            return Transactions(self.ws).recovery()
+        with self.ws.mutation(recovery=True):
+            return Transactions(self.ws).recovery(approval, True)
 
     def install(self, candidate_id, approval=None, apply=False):
         if not apply:
@@ -529,7 +621,11 @@ class Stratagent:
                     mismatches.append({"path": output["path"], "reason": "missing"})
                 elif path.stat().st_size != output["size"] or digest(path.read_bytes()) != output["sha256"]:
                     mismatches.append({"path": output["path"], "reason": "content-drift"})
-        return {"ok": not mismatches, "checked": checked, "mismatches": mismatches}
+                elif "mode" in output and self.ws.fs.mode(path.stat()) != output["mode"]:
+                    mismatches.append({"path": output["path"], "reason": "mode-drift"})
+        pending = Transactions(self.ws).pending()
+        return {"ok": not mismatches and pending is None, "checked": checked, "mismatches": mismatches,
+                "pending_transaction": pending["id"] if pending else None}
 
     def status(self):
         manifest = self.manifest()
@@ -543,6 +639,8 @@ class Stratagent:
             except StratagentError as error:
                 context_error = str(error)
         return {"schema_version": 1, "workspace": str(self.ws.root), "platforms": manifest["platforms"],
+                "filesystem": self.ws.fs.capabilities(),
+                "installations": [{"key": key, "outputs": len(record["outputs"])} for key, record in self.lock()["installations"].items()],
                 "analysis": self.analysis(manifest), "candidates": list(manifest["candidates"].values()),
                 "approved_blueprint": ({"decision": approved["decision"], "context_digest": approved["context_digest"],
                                         "context_current": context_current, "context_error": context_error,
