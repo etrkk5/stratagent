@@ -1,6 +1,6 @@
 # Resource assurance — P4 first checkpoint
 
-Version 0.6.0 starts P4; it does **not** complete P4 or authorize executable resources. Runtime discovery remains live GitHub/official MCP Registry research, not a bundled catalog. Popularity still contributes only to discovery/relevance, never safety.
+Version 0.6.0 started P4's metadata/reference checkpoint. Version 0.7.0 adds [non-executing artifact/tool inspection and local revocation/advisory policy](artifact-assurance.md). Neither authorizes executable resources or completes broad production interoperability. Runtime discovery remains live GitHub/official MCP Registry research, not a bundled catalog. Popularity still contributes only to discovery/relevance, never safety.
 
 ## Supported review contract
 
@@ -39,11 +39,10 @@ PyYAML is the first third-party runtime dependency. Standard pip installation re
 
 The point-in-time OSV query for PyPI/PyYAML 6.0.3 returned no advisory IDs on October 22, 2026. That is only an observed response, **not** ongoing monitoring, a comprehensive audit or a vulnerability-free guarantee. No private project text was sent. [Validation](validation.md) records original adversarial/integration tests, separately installed acceptance, live-source rejection gaps and commit-specific CI evidence.
 
-## Remaining P4 work — do not advance to P5
+## P4 continuation — declared scope and remaining gates
 
-- Separate bounded, read-only code/artifact and tool-manifest audit with declared assurance levels; review requested permissions and preserved license obligations.
-- Immutable package artifact/digest verification, dependency closure and archive traversal/bomb/link handling before any supported executable installation; never run package lifecycle hooks to inspect a package.
-- Explicit local revocation/advisory state, freshness/outage policy and installed-source impact reporting. A one-off dependency query is not this feature.
-- Real-world compatibility/false-positive evidence beyond four rejected popular-repository samples; no code-bearing source is claimed audited or installable just to improve coverage.
+- Implemented in 0.7.0: bounded npm artifact integrity/archive/code/license/permission review, operator-supplied MCP tools/list review, exact local revocations, root-package OSV freshness/outage handling and installed-source impact reporting. See the contract and validation, not a claim of behavioral safety.
+- Unverified transitive/optional/peer/bundled dependency closure blocks artifacts. Executable installation, lifecycle hooks and activation remain unavailable; no unsupported artifact is claimed audited or installable to improve coverage.
+- Broad universal skill compatibility is not claimed. Additional GitHub samples first hit the anonymous rate limit, then two MIT text skills passed inspection using the existing authenticated session. Two fresh npm provider samples verify SRI and expose actual unsupported license/dependency gaps. The validation record retains failures and limitations rather than pretending every popular source is installable.
 
 P5 native host sessions/human evaluations and P6 release operations remain blocked independently. This checkpoint does not publish a package, merge main, start an MCP server or delegate an agent.

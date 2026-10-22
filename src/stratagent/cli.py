@@ -15,6 +15,7 @@ from .project import inspect_project
 from .service import Stratagent
 from .workspace import Workspace
 from .lifecycle import Transactions
+from .assurance import Assurance
 
 
 def parser():
@@ -46,6 +47,10 @@ def parser():
         "inspect-mcp": "Review MCP provenance, transport options and policy findings",
         "configure-mcp": "Preview or approve inert Claude/Codex/Antigravity MCP proposal files",
         "inspect": "Read candidate findings and optional untrusted file contents",
+        "audit-package": "Preview or separately approve fixed-host npm artifact/OSV inspection; never install or execute",
+        "audit-tools": "Review and cache an operator-supplied MCP tools/list JSON; never contact its server",
+        "revoke": "Deny one exact repository/review/artifact/package/server; never delete installed files",
+        "security-status": "Report installed-source revocation and recorded assurance impact separately from file hashes",
         "recommend": "Suggest eligible reviewed resources for each task; does not approve",
         "allow": "Explicitly allow one exact repository in this workspace",
         "install": "Preview an installation; --apply requires an exact approval digest",
@@ -122,10 +127,17 @@ def parser():
         if name == "discover-mcp":
             sub.add_argument("--query", help="Public server-name search; defaults to a detected project domain")
             sub.add_argument("--limit", type=int, default=6)
-        if name in ("inspect-mcp", "configure-mcp"):
+        if name in ("inspect-mcp", "configure-mcp", "audit-package", "audit-tools"):
             sub.add_argument("candidate_id")
-        if name == "configure-mcp":
+        if name in ("configure-mcp", "audit-package"):
             sub.add_argument("--option", type=int, default=0, help="Transport option index from inspect-mcp")
+        if name == "audit-package":
+            sub.add_argument("--approve-network", help="Exact audit preview approval; grants only three fixed-host read requests")
+        if name == "audit-tools":
+            sub.add_argument("--file", required=True, help="Workspace-relative operator-captured tools/list JSON, at most 256 KiB")
+        if name == "revoke":
+            sub.add_argument("subject", help="Exact repo:, review:, artifact:, npm: or mcp: identifier")
+            sub.add_argument("--reason", required=True, help="Local operator rationale; not sent to a provider")
         if name == "blueprint":
             sub.add_argument("--decisions", help="Workspace-relative JSON proposal from your model or human review; no model API is called")
             sub.add_argument("--session", help="Use the final decision and exact run from one reviewed orchestration session; incompatible with --decisions/--run")
@@ -210,6 +222,14 @@ def main(argv=None):
                 result = forge.discover(args.repo, args.limit, repo_limit=args.repo_limit)
             elif args.command == "inspect":
                 result = forge.inspect(args.candidate_id, args.content)[0]
+            elif args.command == "audit-package":
+                result = Assurance(forge).package(args.candidate_id, args.option, args.approve_network)
+            elif args.command == "audit-tools":
+                result = Assurance(forge).tools(args.candidate_id, args.file)
+            elif args.command == "revoke":
+                result = Assurance(forge).revoke(args.subject, args.reason)
+            elif args.command == "security-status":
+                result = Assurance(forge).status()
             elif args.command == "discover-mcp":
                 result = forge.discover_mcp(args.query, args.limit)
             elif args.command == "inspect-mcp":

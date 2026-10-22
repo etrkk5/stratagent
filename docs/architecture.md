@@ -54,6 +54,10 @@ Version 0.4.1 adds model-proposed clarification questions and CLI-only revised p
 
 `cli.py` emits JSON results on stdout, optional structured command events on stderr, and safe error objects/exit codes. `--content` adds exact rendered text to dry-runs for review. Command events omit prompt, source text, credentials and paths. stdio serving preserves protocol-only stdout.
 
+## Resource assurance
+
+`artifacts.py` adds pure bounded SRI/gzip/tar, code/license/entrypoint/permission and tools/list inspection. It never extracts onto disk or runs packages; unsupported dependency closure and formats fail closed. `assurance.py` owns CLI-only fixed-host npm/OSV refresh approval, private content-addressed evidence, TTL/pending/failed state, exact local revocations and installed impact. Dynamic policy/assurance overlays do not rewrite source review identities: new evidence references and policy are separately lifecycle-approval-bound. Changing source metadata, corrupting a cache, expiring a recorded review or revoking a selected resource blocks current selection/apply. File integrity remains separate from security impact; nothing silently deletes user/host state. No new model-facing write/approval tool is introduced. The [artifact assurance contract](artifact-assurance.md) states the non-executing boundary and unsupported guarantees.
+
 ## Host adapter contract
 
 `hosts.py` is the trusted integration boundary. Each frozen `HostAdapter` specifies a stable ID, skill root, optional native-agent root/header, and optional pure MCP proposal renderer. Its capability description distinguishes native role definitions from portable role skills and reports whether host-specific MCP proposals exist. The built-in catalog is immutable during normal execution. `stratagent platforms` exposes it without requiring a workspace.

@@ -379,6 +379,14 @@ Adapt this example to your MCP client, replacing both paths:
 
 This is a generic example; StratAgent does not modify user settings. Automated subprocess tests verify stdio behavior, and an [actual Codex CLI model pilot](docs/pilot-validation.md) exercised decision/preview/status tools and a generated portable role. MCP Inspector and actual Claude Code/Antigravity client sessions remain untested.
 
+## Artifact, tool and revocation review
+
+Review executable resources **without running them**. `audit-package MCP_ID` previews exact public npm/OSV egress; only its matching `--approve-network HASH` downloads and inspects pinned bytes. SHA-512 integrity, bounded archive handling, code/entrypoint/license/permission findings, root-package advisories and failed/expired refreshes are explicit. Dependency closure is not silently assumed, and no package manager or lifecycle hook runs.
+
+`audit-tools MCP_ID --file tools.json` reviews an operator-supplied tools/list snapshot without contacting its server or granting its declared permissions. `revoke repo:owner/repository --reason "Security hold"` denies exact resources locally; `security-status` reports installed impact separately from `verify` file hashes. `allow` cannot override revocations. Nothing is automatically removed or activated.
+
+See [artifact assurance](docs/artifact-assurance.md) for exact commands, supported formats, 24-hour evidence policy, offline/failure behavior and unimplemented executable/dependency/behavior guarantees. These additions do not make the application production-ready.
+
 ## Development and verification
 
 ```sh
@@ -404,4 +412,4 @@ Primary sources checked on October 18–19, 2026:
 - [OpenAI skills](https://github.com/openai/skills), [Anthropic skills](https://github.com/anthropics/skills) and [VoltAgent sub-agents](https://github.com/VoltAgent/awesome-claude-code-subagents)
 - [SPDX license texts](https://github.com/spdx/license-list-data); pinned reference commits/hashes are in `src/stratagent/data/license_sources.json`.
 
-StratAgent source code is MIT-licensed. Discovered resources retain their own licenses. Version 0.6 requires source review refresh and fresh previews/approvals; the reviewed lock migration contract remains in force. Do not edit approval-bound state by hand. This remains a developer preview, not a production/GA claim.
+StratAgent source code is MIT-licensed. Discovered resources retain their own licenses. Version 0.7 retains scanner 2 evidence and requires current generator/policy/context approvals; scanner 1 sources need rediscovery. The reviewed lock migration contract remains in force. Do not edit approval-bound state by hand. This remains a developer preview, not a production/GA claim.

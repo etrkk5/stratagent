@@ -1,5 +1,34 @@
 # Validation
 
+## Version 0.7.0 P4 artifact/tool and security-policy checkpoint — October 22, 2026
+
+The [non-executing assurance contract](artifact-assurance.md) implements the requested artifact/tool inspection and local revocation/advisory layer. Unsupported dependency closure, executable installation/activation and behavioral guarantees remain explicitly blocked/unclaimed. P5 host/human evaluation and P6 operational release gates are not replaced by these checks.
+
+- **351 tests discovered: 350 pass, one Windows-only junction test skipped on macOS**, both from source and a separately installed wheel with `PYTHONPATH` unset and working directory `/tmp`, Python 3.14.3. The 46 new test methods cover SRI-before-decompression, archive traversal/case/component/link/device/mode/size/member/bomb/trailing-content rejection, metadata-extension refusal before tar parsing, complete-license/body conflicts, bin entrypoints, unsafe hooks/native builds, unknown dependency closure, decoded JSON/escape/newline injection, bounded strict JSON, code capability findings, typed/untrusted tool snapshots, pagination/schema refusal, immutable cache/source binding, expiry, refresh outage/quota/interruption, concurrent policy changes, stale staged approval, deprecated npm versions, exact/idempotent revocation and retained removal/file verification. CLI preview, tools/inspect/revoke/security-status roundtrips and private-data-free event logging pass. Existing 13 default MCP tools retain read-only/no-approval authority.
+- The final wheel's 28 runtime module files are byte-identical to current source. SHA-256: `29be6c5f28b441771eb097c01bb25b6be2531a388c8da0931bae6fe2d9d6af1e`. Runtime dependency remains only PyYAML 6.0.3; artifact tooling uses the standard library. Installation uses local wheels with `--no-index`, never an npm installer or artifact lifecycle hook. Package consistency, compilation, Markdown local links and diff whitespace checks pass; no PyPI distribution/release is published.
+- Independently installed acceptance retains the **15-command** reviewed lifecycle: 34 initial files → 7 writes/27 obsolete owned deletions → removal of the final 7, four original user files/settings unchanged, four transactions and repeat no-ops. The original CLI/demo smoke verifies **46 outputs**. These acceptance scripts make zero provider/model calls, third-party resource executions or native-host activations. The project virtual environment is updated from the checked 0.7.0 wheel.
+- Publication is now explicitly authorized to **main**, after the working-branch checks; fast-forward/history preservation is preferred. Commit-specific native results must be read from the corresponding [GitHub Actions run](https://github.com/etrkk5/stratagent/actions/workflows/tests.yml), not inferred from the old 0.6 matrix. This saved checkpoint records prepublication local measurements; final publication/CI results are reported with their actual commit/run.
+
+### Actual text-resource and provider observations
+
+The anonymous GitHub attempt was rate-limited after five requests and is **not** a pass. Repeating the two explicit public source checks using the existing authenticated gh session's normal API allowance succeeds in six requests. The token is never printed or sent outside the fixed GitHub API. Both skills at `obra/superpowers`, immutable commit `2ce8aa15d05bd57213e6f746f953aafb7ded7a8b`, have two reviewed files including a complete MIT license and remain subject to the untrusted-instructions warning:
+
+| Entry | Review SHA-256 | Actual generic-only acceptance |
+| --- | --- | --- |
+| `skills/writing-plans/SKILL.md` | `5caac9bdcb680f657d4cf5925e783adc8153994661944d558c9ba3b30849a145` | Inspect all text → separate repository allowance/current approval → 2 inert files installed → hashes verify → 2 owned files removed |
+| `skills/dispatching-parallel-agents/SKILL.md` | `db1f3288658bf3d4b07aea97ae51324d9370b855a238c954c8d80644211aea73` | Same exact reviewed lifecycle, 2 files installed/verified/removed |
+
+That additional real-resource lifecycle run also uses six authenticated API reads in a new disposable workspace. Its original user notes remain byte-identical and final ownership is empty. Approval hashes are exercised by the coding assistant as **developer acceptance**, not a claimed independent human click/pilot. No third-party code is executed and no native coding host starts. The earlier four rejected 0.6 samples and known illustrative-link false positive remain part of the record, not silently relabeled safe.
+
+Two current public npm versions were first observed, then fetched by exact version with the fixed-host artifact/OSV connector. Each successful audit uses three requests; the final archive preflight was additionally rechecked against those exact versions. Both SRI digests match, both root OSV responses contain zero advisory IDs, and both packages are nevertheless **blocked** for incomplete dependency closure/unsupported license evidence. These are direct provider/parser checks, not attested MCP Registry associations or successful server installations:
+
+| Package / observed exact version | Artifact SHA-256 | Static observations |
+| --- | --- | --- |
+| `@modelcontextprotocol/server-filesystem@2.0.0` | `894cb9a09b5086d967de850be736aac34d4ae3f096caf34d489844cc2db25438` | 9 files, SRI verified; code/process/network/filesystem capability signals, executable mode, script declarations, dependency/license blockers |
+| `@modelcontextprotocol/server-memory@2.0.0` | `1ffb8dc5396540b8449170bfa56a75d66a4f8a6a5cd2b13cf04c9cbbb8638ef1` | 4 files, SRI verified; environment/network/filesystem capability signals, executable mode, scripts, dependency/license blockers |
+
+No archive member is extracted to disk and no discovered package or server executes. Empty root advisory results do not certify a package or its dependency tree. The P4 checkpoint supplies reviewable evidence/refusals for its declared scope, not universal compatibility; independent P5/P6 evidence and any future supported executable/dependency/activation contract remain necessary before a production claim.
+
 ## Version 0.6.0 P4 metadata/reference checkpoint — October 22, 2026
 
 P4 has started, **not completed**. [Resource assurance](resource-assurance.md) defines the supported metadata/reference syntax, scanner refresh, first runtime dependency and still-blocking code/artifact/tool/revocation work. This is not a production or native-host activation claim.

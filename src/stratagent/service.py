@@ -20,6 +20,7 @@ from .sessions import load as load_session
 from .security import SCANNER_VERSION, assess, unpack
 from .workspace import Workspace
 from .lifecycle import Transactions, validate_lock
+from .assurance import Assurance, restrictions, validate_revocations
 
 MANIFEST = ".stratagent/manifest.json"
 LOCK = ".stratagent/lock.json"
@@ -51,6 +52,10 @@ class Stratagent:
         if (not isinstance(value.get("candidates"), dict) or not isinstance(value.get("analysis"), dict)
                 or not isinstance(value.get("mcp_candidates", {}), dict)):
             raise StratagentError("Invalid manifest structure.")
+        for field in ("artifact_audits", "tool_audits"):
+            entries = value.get(field, {})
+            if not isinstance(entries, dict) or len(entries) > 100 or any(not isinstance(record, dict) for record in entries.values()):
+                raise StratagentError("Invalid or oversized assurance manifest structure.")
         return value
 
     def policy(self):
@@ -59,6 +64,7 @@ class Stratagent:
             raise StratagentError("Invalid policy schema; expected version 1 with an exact repository allowlist.")
         if any(repository(repo) != repo for repo in value["allow_repositories"]):
             raise StratagentError("Policy repositories must use normalized owner/repo names.")
+        validate_revocations(value)
         return value
 
     def lock(self):
@@ -212,6 +218,8 @@ class Stratagent:
             raise StratagentError("Cached evidence changed; discover and review again.")
         result = {**actual, "origin": snapshot.get("origin", "unknown"),
                   "source_url": f"https://github.com/{actual['repo']}/blob/{actual['commit']}/{actual['entry']}"}
+        result["policy_findings"] = restrictions(result, self.policy())
+        result["eligible"] = result["eligible"] and not result["policy_findings"]
         if content:
             result["untrusted_file_contents"] = {p: d.decode() for p, d in unpack(snapshot).items()}
         return result, snapshot
@@ -343,6 +351,7 @@ class Stratagent:
         allowed = set(self.policy()["allow_repositories"])
         missing = sorted(required_repositories - allowed)
         blockers = list(blueprint["blockers"])
+        blockers.extend(plan["policy_findings"])
         blockers.extend({"rule": "repository-not-allowed", "repo": repo} for repo in missing)
         previous_paths = {output["path"] for output in lock["installations"].get("workspace-blueprint", {}).get("outputs", [])}
         blockers.extend({"rule": "existing-output", "path": path} for path in sorted(files) if path not in previous_paths and self.ws.path(path).exists())
@@ -383,7 +392,7 @@ class Stratagent:
                 "errors": errors, "saved": save and bool(reviews), "registry": "https://registry.modelcontextprotocol.io",
                 "note": "Search matches server names, not a full semantic catalog. Metadata is untrusted; no package or server is executed."}
 
-    def inspect_mcp(self, candidate_id, content=False):
+    def inspect_mcp(self, candidate_id, content=False, include_assurance=True):
         saved = self.manifest().get("mcp_candidates", {}).get(candidate_id)
         if not isinstance(saved, dict):
             raise StratagentError("Unknown MCP candidate ID; run discover-mcp first.")
@@ -394,6 +403,8 @@ class Stratagent:
         actual = assess_server(snapshot, self.analysis()["search_terms"])
         if actual["metadata_sha256"] != metadata_hash or actual["review_digest"] != saved.get("review_digest") or actual["id"] != candidate_id:
             raise StratagentError("Cached MCP metadata changed; discover and review again.")
+        if include_assurance:
+            actual = Assurance(self).enrich(actual)
         if content:
             actual["untrusted_registry_metadata"] = snapshot
         return actual, snapshot
@@ -425,6 +436,7 @@ class Stratagent:
         payload = {"schema_version": 1, "workspace": str(self.ws.root), "generator_version": __version__,
                    "platforms": platforms(self.manifest()["platforms"]),
                    "source": source, "origin": origin, "review_digest": review_digest, "outputs": outputs,
+                   "policy_findings": restrictions({**source, "review_digest": review_digest}, self.policy()) if source.get("kind") != "removal" else [],
                    "lifecycle": Transactions(self.ws).preview(key, files, self._lifecycle_context(), source.get("kind") == "removal")}
         return {**payload, "approval": identity(payload)}
 
@@ -476,6 +488,8 @@ class Stratagent:
         return plan, files
 
     def _apply(self, plan, files, approval, key):
+        if plan.get("policy_findings"):
+            raise StratagentError("Plan source is revoked by local security policy; no files changed.")
         lock = self.lock()
         transaction = Transactions(self.ws)
         if self.ws.path(".stratagent/transaction.json").exists():
@@ -549,7 +563,7 @@ class Stratagent:
         raise StratagentError("Unsupported staged operation.")
 
     def _authorization(self, plan):
-        if plan.get("blockers") or plan["lifecycle"]["blockers"]:
+        if plan.get("blockers") or plan.get("policy_findings") or plan["lifecycle"]["blockers"]:
             raise StratagentError("Plan has unresolved blockers, drift or output conflicts; review before staging/applying.")
         if plan.get("repository_allowed") is False and (plan["source"].get("selected_transport", {}).get("type") != "http"):
             raise StratagentError("Repository is not allowed; review its exact source before staging/applying.")
@@ -631,6 +645,12 @@ class Stratagent:
 
     def status(self):
         manifest = self.manifest()
+        candidates = []
+        for review in manifest["candidates"].values():
+            policy_findings = restrictions(review, self.policy())
+            candidates.append({**review, "scanner_current": review.get("scanner_version") == SCANNER_VERSION,
+                               "policy_findings": policy_findings,
+                               "eligible": review.get("eligible", False) and review.get("scanner_version") == SCANNER_VERSION and not policy_findings})
         installation = self.lock()["installations"].get("workspace-blueprint")
         approved = installation["source"]["blueprint"] if installation else None
         context_current, context_error = False, None
@@ -643,12 +663,10 @@ class Stratagent:
         return {"schema_version": 1, "workspace": str(self.ws.root), "platforms": manifest["platforms"],
                 "filesystem": self.ws.fs.capabilities(),
                 "installations": [{"key": key, "outputs": len(record["outputs"])} for key, record in self.lock()["installations"].items()],
-                "analysis": self.analysis(manifest), "candidates": [
-                    {**review, "scanner_current": review.get("scanner_version") == SCANNER_VERSION,
-                     "eligible": review.get("eligible", False) and review.get("scanner_version") == SCANNER_VERSION}
-                    for review in manifest["candidates"].values()],
+                "analysis": self.analysis(manifest), "candidates": candidates,
                 "approved_blueprint": ({"decision": approved["decision"], "context_digest": approved["context_digest"],
                                         "context_current": context_current, "context_error": context_error,
                                         "roles": [role["id"] for role in approved["roles"]], "approval": installation["approval"]} if approved else None),
                 "mcp_candidates": [self.inspect_mcp(candidate_id)[0] for candidate_id in manifest.get("mcp_candidates", {})],
+                "security": Assurance(self).status(),
                 "policy": self.policy(), "verification": self.verify()}
