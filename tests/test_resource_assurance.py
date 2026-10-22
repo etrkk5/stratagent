@@ -4,8 +4,11 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 from unittest.mock import patch
+
+import yaml
 
 from stratagent.adapters import render_bundle
 from stratagent.common import StratagentError, digest
@@ -281,3 +284,22 @@ class ResourceIntegrationTests(unittest.TestCase):
         self.assertEqual(inspected["assurance"]["tool_behavior"], "not-audited")
         self.assertNotIn("PRIVATE-AUTHOR-SENTINEL", result.stderr)
         self.assertEqual(file_state(self.root), before)
+
+
+class DependencyPackagingTests(unittest.TestCase):
+    def test_native_ci_yaml_is_parseable_and_installs_the_pinned_dependency_offline(self):
+        root = Path(__file__).resolve().parent.parent
+        workflow = yaml.safe_load((root / ".github/workflows/tests.yml").read_text())
+        project = tomllib.loads((root / "pyproject.toml").read_text())
+        job = workflow["jobs"]["unit"]
+        self.assertEqual(len(job["strategy"]["matrix"]["include"]), 6)
+        steps = {step["name"]: step for step in job["steps"] if "name" in step}
+        download = steps["Download reviewed runtime dependency wheels"]["run"]
+        self.assertIsInstance(download, str)
+        self.assertIn("--only-binary=:all:", download)
+        self.assertIn("--no-deps", download)
+        self.assertEqual(project["project"]["dependencies"], ["PyYAML==6.0.3"])
+        self.assertIn(project["project"]["dependencies"][0], download)
+        install = steps["Install built wheel"]["run"]
+        self.assertIn("--no-index", install)
+        self.assertNotIn("--no-deps", install)
