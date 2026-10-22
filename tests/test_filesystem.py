@@ -20,6 +20,10 @@ from test_stratagent import file_state
 
 class FilesystemTests(unittest.TestCase):
     def test_snapshot_keys_are_portable_even_for_windows_relative_paths(self):
+        from test_architect import file_state as architectural_state
+        from test_preparation import file_state as preparation_state
+        self.assertIs(architectural_state, file_state)
+        self.assertIs(preparation_state, file_state)
         child = Mock()
         child.is_file.return_value = True
         child.relative_to.return_value = PureWindowsPath(".stratagent/runs/example.json")

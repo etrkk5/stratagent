@@ -18,6 +18,7 @@ from stratagent.project import inspect_project
 from stratagent.registry import OFFICIAL, Registry, assess_server, public_https, render_server
 from stratagent.service import LOCK, MANIFEST, POLICY, Stratagent
 from stratagent.workspace import Workspace
+from test_stratagent import file_state
 
 
 def registry_record(remote=False):
@@ -29,10 +30,6 @@ def registry_record(remote=False):
         server["packages"] = [{"registryType": "npm", "identifier": "@example/python-tools", "version": "2.3.4",
                                "transport": {"type": "stdio"}}]
     return {"server": server, "_meta": {OFFICIAL: {"status": "active", "publishedAt": "2026-10-19T00:00:00Z"}}}
-
-
-def file_state(root):
-    return {str(path.relative_to(root)): path.read_bytes() for path in root.rglob("*") if path.is_file()}
 
 
 class FakeRegistry:
