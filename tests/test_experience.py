@@ -170,7 +170,7 @@ class ExperienceTests(unittest.TestCase):
         choices = guide(self.service)
         self.assertEqual(choices["phase"], "choose-session")
         self.assertEqual(len(choices["sessions"]), 2)
-        self.assertEqual(guide(self.service, added["session_id"])["phase"], "research")
+        self.assertEqual(guide(self.service, added["session_id"])["phase"], "assess")
 
     def test_clarification_is_a_user_decision_not_an_automatic_scope_change(self):
         started = self.start()

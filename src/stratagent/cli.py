@@ -28,6 +28,7 @@ def parser():
         "session-request": "Read the next model request, exact search review or final blueprint",
         "session-submit": "Validate and persist a model proposal; never search, approve or install",
         "session-search": "Run one separately approved search round; never install or execute resources",
+        "session-accept-fit": "Record operator acceptance of an exact no-change assessment; never install or activate",
         "session-status": "Read durable progress, budgets and sanitized event history",
         "session-cancel": "Cancel a session; active requests stop at their next boundary",
         "session-resume": "Resume with a fresh model request; never reset budgets or replay searches",
@@ -132,6 +133,8 @@ def parser():
             response.add_argument("--response-stdin", action="store_true", help="Read one bounded JSON proposal from stdin; no temporary response file")
         if name == "session-search":
             sub.add_argument("--approve-search", required=True, help="Exact session search_review.approval; not the lower-level research hash")
+        if name == "session-accept-fit":
+            sub.add_argument("--approve", required=True, help="Exact fit review approval, carried by the agent after operator review")
         if name == "serve":
             sub.add_argument("--orchestration", help="Opt into proposal-only writes for ONE session; exposes only session request/submit tools, no network tools")
         if name in ("decision-request", "blueprint"):
@@ -267,6 +270,8 @@ def main(argv=None):
                     result = driver.submit(args.session_id, args.request_id, response)
                 elif action == "search":
                     result = driver.search(args.session_id, args.approve_search)
+                elif action == "accept-fit":
+                    result = driver.accept_fit(args.session_id, args.approve)
                 elif action == "answer":
                     result = driver.answer(args.session_id, args.prompt)
                 else:

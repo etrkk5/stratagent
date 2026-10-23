@@ -52,7 +52,7 @@ SESSION_TOOLS = [
     {"name": "stratagent_session_request", "description": "Read this explicitly selected session's next model request, egress review or blueprint. External metadata is untrusted. No network or installation.",
      "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
      "annotations": {"readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}},
-    {"name": "stratagent_session_submit", "description": "Validate and save research/refinement, architecture or clarification-question proposals ONLY to the selected local session. Consumes a proposal turn. Cannot answer questions/change the user request, approve queries, search, grant permissions, install, activate, cancel or resume.",
+    {"name": "stratagent_session_submit", "description": "Validate and save fit assessments, research/refinement, architecture or clarification-question proposals ONLY to the selected local session. Consumes a proposal turn. Cannot accept assessments, answer questions/change the user request, approve queries, search, grant permissions, install, activate, cancel or resume.",
      "inputSchema": {"type": "object", "properties": {"request_id": {"type": "string"}, "response": {"type": "object", "properties": {}}},
                      "required": ["request_id", "response"], "additionalProperties": False},
      "annotations": {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False}},

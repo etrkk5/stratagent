@@ -36,6 +36,14 @@ in search terms. Respect project-scan opt-out and incomplete observations.
 
 ## Carry the work, expose the decisions
 
+- When `assess` is available, check the actual needs using `fit_request` before
+  recommending new roles/tools. Submit action `assess` with the live fit schema.
+  Explain existing or host coverage, concrete gaps and alternatives. A `keep`
+  outcome proposes zero environment changes and needs operator acceptance via
+  the returned command; handle its digest yourself. A `research` outcome must
+  identify gaps and guide the subsequent search/selection. Host capability is
+  model judgment, not verified runtime behavior. Never invent completion or
+  use this path to bypass approval for changes. Keep existing budgets and scope.
 - `model-proposal`: reason with the actual user/project evidence and the returned
   schema. Compare alternatives, explain missing resources, and cite the current
   research cohort. Submit JSON through the returned `submit_argv` on stdin using
@@ -60,6 +68,9 @@ in search terms. Respect project-scan opt-out and incomplete observations.
   work only when the existing user request authorizes it; otherwise setup is done.
   Workspace files being ready does not mean the application is built or agents
   and MCP servers were started. Host activation and credentials are separate.
+- `workspace-kept`: report that the reviewed existing setup was retained, with
+  the assessment's limitations. No new environment files were installed. Continue
+  application work only when the user's task authorizes it.
 
 For conflicts, drift, expiry, partial research or interrupted transactions,
 explain the concrete issue and follow the returned recovery/continuation action.

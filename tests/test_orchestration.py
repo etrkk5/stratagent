@@ -41,7 +41,7 @@ class OrchestrationTests(unittest.TestCase):
     def test_start_is_local_bounded_and_resumes_with_another_driver_instance(self):
         result = self.start()
         self.assertEqual(result["session"]["state"], "research-needed")
-        self.assertEqual(result["model_request"]["allowed_actions"], ["research", "clarify"])
+        self.assertEqual(result["model_request"]["allowed_actions"], ["assess", "research", "clarify"])
         self.assertFalse(self.github.calls or self.registry.calls)
         restored = Orchestrator(Stratagent(self.root)).request(result["session"]["id"])
         self.assertEqual(result, restored)
@@ -172,7 +172,7 @@ class OrchestrationTests(unittest.TestCase):
         self.assertEqual(interrupted["session"]["usage"]["network_reserved"], 80)
         resumed = self.driver.resume(session_id)
         self.assertEqual(resumed["session"]["usage"], interrupted["session"]["usage"])
-        self.assertEqual(resumed["model_request"]["allowed_actions"], ["research", "clarify"])
+        self.assertEqual(resumed["model_request"]["allowed_actions"], ["assess", "research", "clarify"])
         replacement = self.propose(resumed, github=False)
         with self.assertRaisesRegex(StratagentError, "approval"):
             self.driver.search(session_id, proposed["search_review"]["approval"])

@@ -103,6 +103,15 @@ context; managed outputs remain separate so apply does not invalidate itself.
 No definition is adopted, executed or certified by its presence. See the
 [scope, privacy and context contract](existing-environment.md).
 
+## Assess before adding
+
+The initial model request now offers a grounded needs/coverage assessment. The
+agent can propose keeping the existing setup, with reasons and alternatives,
+without searches or new role/tool files. The operator reviews and accepts that
+exact no-change outcome; `next` reports `kept`, not a new installation. If a gap
+exists, the assessment guides research and is shown in the workspace review.
+See [fit boundaries](workspace-fit.md) and the [complete quickstart](quickstart.md).
+
 ## Review and completion
 
 The workspace review explains the selected strategy, role responsibilities and
