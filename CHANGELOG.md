@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — 0.9.0 agent-first experience
+
+- Project-local first-party skill integration with exact review, create-only file writes and conflict preservation.
+- A concise welcome, idempotent `start` and read-only `next` guidance for humans and coding agents.
+- Progressive model schemas, exact search review, explained roles/resources/file changes, and verified completion.
+- Direct bounded proposal input on stdin; returned command arrays preserve the running virtual environment.
+- A read-only `stratagent_next` MCP entry point. Existing session tools retain their proposal-only scope.
+- Explicit handling of ambiguous sessions, expiry, context drift, output conflicts and transaction recovery.
+
+
 ## 0.8.0 — Developer Preview
 
 - Build project-aware agent workspaces using an existing coding host/model,

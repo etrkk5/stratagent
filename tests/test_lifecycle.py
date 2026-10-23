@@ -56,7 +56,7 @@ class LifecycleTests(LifecycleCase):
         self.assertEqual(self.service.ws.path(LOCK).read_bytes(), before)
         self.assertFalse(self.service.ws.path(".stratagent/blueprint.json").exists())
         self.assertTrue(stage["diff"])
-        self.assertEqual(len(Server(self.root).tools), 13)
+        self.assertEqual(len(Server(self.root).tools), 14)
         self.assertFalse(any(tool["name"] in ("stratagent_apply", "stratagent_recover", "stratagent_revise") for tool in Server(self.root).tools))
         with self.assertRaisesRegex(StratagentError, "Approval"):
             self.service.apply_stage(stage["stage_id"], "yes")

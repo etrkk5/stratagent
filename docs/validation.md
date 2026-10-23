@@ -1,5 +1,31 @@
 # Validation
 
+## Unreleased 0.9.0 agent-first experience — October 23, 2026
+
+The selected product priority is natural-language use inside the existing coding
+host, before more launch work. [Workflow and limits](agent-first-experience.md)
+records the new project-local first-party skill, `connect`, `start`, progressive
+`next`, read-only MCP guidance and bounded stdin proposals. The published 0.8.0
+release is unchanged; 0.9.0 is not published or on PyPI.
+
+- **427 tests discovered: 426 pass, one Windows-only junction test skipped** on
+  macOS/Python 3.14.7, from source and a separately installed 0.9.0 wheel outside
+  the checkout with `PYTHONPATH` unset. The 22 new experience methods exercise
+  read-only guidance, exact search disclosure, real subprocess stdin submission,
+  review/stage/apply/verify, user-file preservation, no session/budget reset,
+  multiple plans, stale context/decision rejection, bounded/FIFO metadata,
+  interrupted-transaction recovery, connection approval/cross-root/stale-state
+  refusal, multi-file rollback and idempotence under a restrictive actual umask.
+- The packaged skill passes the skill-creator structural validator. Source and
+  installed-wheel execution preserve the same Python environment in returned
+  argument arrays. Compilation and diff whitespace checks pass. No runtime
+  dependency was added; PyYAML remains pinned to 6.0.3.
+- Official Codex, Claude Code and Antigravity skill discovery documentation was
+  checked for the generated paths. Tests use controlled provider/model fixtures;
+  no new native-host loading, human preference or independent-user result is
+  claimed. Previously waived field checks remain waived, not fabricated passes.
+  Remote CI and distribution-upgrade outcomes are recorded separately when run.
+
 ## 0.8.0 publication and launch preparation — October 23, 2026
 
 - Source suite: **405 discovered, 404 pass, one Windows-only junction test skipped** on macOS/Python 3.14.7. Eleven new regression methods exercise exact-main/workflow/commit and six-job gates, wrong/dirty/missing bundles, asset changes/path escape, repeatable ZIPs, existing-output preservation, exact PyPI byte selection, public-query minimization and advisory/incomplete-response failures. An initial audit parser rejected packaging's valid two-part `26.3` version; it now accepts the reviewed two/three-part pins without allowing unpinned requirements.

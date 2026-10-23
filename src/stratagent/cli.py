@@ -14,8 +14,11 @@ def parser():
     root.add_argument("--version", action="version", version=__version__)
     root.add_argument("--workspace", default=".", help="Existing project directory")
     root.add_argument("--log-json", action="store_true", help="Emit structured command events to stderr, without prompts, credentials or file contents")
-    commands = root.add_subparsers(dest="command", required=True)
+    commands = root.add_subparsers(dest="command", metavar="COMMAND")
     for name, help_text in {
+        "connect": "Preview a first-party project skill so your coding agent can discover StratAgent",
+        "start": "Start or continue an agent-guided workspace plan from your project request",
+        "next": "Explain the next useful step without searching, installing or changing state",
         "init": "Analyze a prompt and initialize a workspace (no external code)",
         "prepare": "Turn one project idea into researched skills/MCP choices and a reviewable environment blueprint; never auto-install",
         "research-request": "Export project context and a model-neutral runtime search-plan schema; writes nothing",
@@ -60,6 +63,19 @@ def parser():
         sub = commands.add_parser(name, help=help_text)
         sub.add_argument("--workspace", default=argparse.SUPPRESS, help="Project directory (demo may create it)")
         sub.add_argument("--log-json", action="store_true", default=argparse.SUPPRESS, help="Emit structured events to stderr")
+        if name in ("connect", "start", "next"):
+            sub.add_argument("--json", action="store_true", help="Structured agent response; the default is a concise human view")
+        if name in ("start", "connect"):
+            sub.add_argument("--platforms", help="Comma-separated host IDs; your agent should select the current host")
+        if name == "start":
+            sub.add_argument("prompt", help="The user's actual project request")
+            sub.add_argument("--new-session", action="store_true", help="Deliberately create a new session rather than reuse existing progress")
+        if name == "next":
+            sub.add_argument("--session", help="Select one session explicitly when several exist")
+            sub.add_argument("--details", action="store_true", help="Include the current model schema or exact blueprint/diff/content")
+        if name == "connect":
+            sub.add_argument("--apply", action="store_true", help="Add only the exact reviewed first-party skill files")
+            sub.add_argument("--approve", help="Exact connection preview digest; handled by your agent")
         if name == "doctor":
             sub.add_argument("--check-files", action="store_true", help="Also verify managed hashes/modes, up to 16 MiB total; never repair")
         if name in ("init", "plan", "prepare", "research-request", "research-preview", "session-start", "revise"):
@@ -110,7 +126,9 @@ def parser():
             sub.add_argument("prompt", help="Complete revised project request, not a model-authored instruction")
         if name == "session-submit":
             sub.add_argument("--request-id", required=True, help="Exact current model request identity")
-            sub.add_argument("--response", required=True, help="Workspace-relative JSON action plus plan or decision")
+            response = sub.add_mutually_exclusive_group(required=True)
+            response.add_argument("--response", help="Workspace-relative JSON action plus plan or decision")
+            response.add_argument("--response-stdin", action="store_true", help="Read one bounded JSON proposal from stdin; no temporary response file")
         if name == "session-search":
             sub.add_argument("--approve-search", required=True, help="Exact session search_review.approval; not the lower-level research hash")
         if name == "serve":
@@ -157,6 +175,15 @@ def parser():
 
 def main(argv=None):
     args = parser().parse_args(argv)
+    if args.command is None:
+        print("StratAgent — design your agent workspace with the coding agent you already use.\n\n"
+              "Tell your agent: Use StratAgent to prepare this project's agent workspace.\n\n"
+              "  connect   Preview project-local integration instructions for your agent\n"
+              "  start     Describe a project and start or continue its reviewed plan\n"
+              "  next      See what matters now and what to do next\n\n"
+              "Agents: use --json, and request --details only when needed.\n"
+              "Advanced commands remain available with --help. No network or files were changed.")
+        return 0
     started = time.monotonic()
 
     def event(name, exit_code=None):
@@ -187,6 +214,21 @@ def main(argv=None):
         from .lifecycle import Transactions
         from .assurance import Assurance
 
+        if args.command in ("connect", "start", "next"):
+            from .experience import begin, connect, guide, render
+            forge = Stratagent(args.workspace)
+            if args.command == "connect":
+                if args.approve is not None and not args.apply:
+                    raise StratagentError("Connection approval requires --apply; preview writes nothing.")
+                result = connect(forge, args.platforms.split(",") if args.platforms is not None else None, args.approve, args.apply)
+            elif args.command == "start":
+                result = begin(forge, args.prompt, args.platforms.split(",") if args.platforms is not None else None, args.new_session)
+            else:
+                result = guide(forge, args.session, args.details)
+            print(json.dumps(result, ensure_ascii=True, indent=2, sort_keys=True) if args.json else render(result))
+            exit_code = 2 if args.command == "connect" and result["phase"] == "blocked" else 0
+            event("command.completed", exit_code)
+            return exit_code
         if args.command == "platforms":
             result = catalog()
         elif args.command == "plan":
@@ -208,7 +250,14 @@ def main(argv=None):
                     result = driver.start(args.prompt, args.platforms.split(",") if args.platforms is not None else None,
                                           args.model_turns, args.search_rounds, args.network_requests, args.seconds)
                 elif action == "submit":
-                    result = driver.submit(args.session_id, args.request_id, forge.ws.read(args.response))
+                    if args.response_stdin:
+                        text = sys.stdin.read(128 * 1024 + 1)
+                        if len(text.encode("utf-8")) > 128 * 1024:
+                            raise StratagentError("Model response exceeds 128 KiB; no proposal was submitted.")
+                        response = json.loads(text)
+                    else:
+                        response = forge.ws.read(args.response)
+                    result = driver.submit(args.session_id, args.request_id, response)
                 elif action == "search":
                     result = driver.search(args.session_id, args.approve_search)
                 elif action == "answer":

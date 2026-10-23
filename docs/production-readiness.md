@@ -8,6 +8,17 @@ A user describes a project. At runtime StratAgent interprets its needs, research
 
 V1 scope is a local CLI plus a narrowly authorized coding-client integration, with host/provider-independent domain logic. It is not a hosted multi-tenant execution service. External text and model output are untrusted data. Popularity is not safety; a policy pass is not a claim of "safest." Source discovery, source review, local installation, credential provision and external process/network activation are separate authorities.
 
+## Current product priority — agent-first experience, October 23, 2026
+
+The user prioritized a compelling, simple product experience before further
+announcement/distribution work, selecting natural-language use inside the existing
+IDE/coding agent. [The active UX track](agent-first-experience.md) defines the user
+journey, engineering acceptance and remaining experiential evidence. Unreleased
+0.9.0 adds first-party project skill integration, start/next guidance and useful
+review summaries over the existing research/approval/lifecycle engine. A packaged
+workflow is not evidence that every agent/user prefers it; native discovery and
+real usefulness remain distinct. The published 0.8.0 artifacts are preserved.
+
 ## Implementation sequence and exit gates
 
 | Phase | Required implementation | Exit evidence | Status |

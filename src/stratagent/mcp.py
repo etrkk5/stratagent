@@ -13,6 +13,8 @@ from .service import Stratagent
 
 PROTOCOL = "2025-03-26"
 TOOLS = [
+    {"name": "stratagent_next", "description": "Start here to prepare or continue an agent workspace. Read the next useful step, project choices and exact review details on demand. No network, initialization, approval or file changes.",
+     "inputSchema": {"type": "object", "properties": {"session_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"}, "details": {"type": "boolean"}}, "additionalProperties": False}},
     {"name": "stratagent_research_request", "description": "Read project evidence and a provider-neutral runtime search-plan schema. No network, writes or approval authority.",
      "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
     {"name": "stratagent_research_preview", "description": "Preview exact outbound query text and research-only approval digest. Queries may contain private terms; human egress review is required. This does not execute searches or approve anything.",
@@ -86,8 +88,13 @@ class Server:
                 raise RPCError(-32602, "Expected one to twenty repository names")
             if expected == "object" and not isinstance(value, dict):
                 raise RPCError(-32602, "Expected object argument")
+            if expected == "boolean" and type(value) is not bool:
+                raise RPCError(-32602, "Expected boolean argument")
         try:
-            if name == "stratagent_session_request":
+            if name == "stratagent_next":
+                from .experience import guide
+                result = guide(self.forge, args.get("session_id"), args.get("details", False))
+            elif name == "stratagent_session_request":
                 result = Orchestrator(self.forge).request(self.orchestration)
             elif name == "stratagent_session_submit":
                 result = Orchestrator(self.forge).submit(self.orchestration, args["request_id"], args["response"])

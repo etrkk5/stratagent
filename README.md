@@ -38,6 +38,31 @@ StratAgent prepares the environment; your coding host builds the application. It
 
 The first two examples are dependency fixtures, not finished applications. The CSV example includes working code and a [recorded Codex pilot](docs/pilot-validation.md).
 
+## Work through your coding agent
+
+**Unreleased 0.9.0 development workflow.** The published 0.8.0 preview retains its
+original commands; use a development checkout to try the new agent-first path.
+
+After installing StratAgent locally, tell your existing coding agent:
+
+> Use StratAgent to prepare this project's agent workspace. Explain the roles,
+> useful resources and file changes before applying anything. Keep my current
+> files and excluded features intact.
+
+For one-time project integration, the agent previews `stratagent connect --json`,
+reviews the packaged first-party skill and applies its exact connection approval.
+Only local skill files are added; no host settings, permissions or MCP servers are
+automatically enabled. A host refresh/new session may be needed for discovery.
+
+The agent uses `start` and `next --json`, requesting detailed schemas or full diffs
+only when needed. You describe the project, answer material questions, review
+public search terms and approve exact changes. The agent carries the session IDs,
+JSON proposals and approval digests. Existing work is reused and verified;
+conflicts, stale context and interrupted changes are explained rather than reset.
+
+[Agent-first workflow and limits](docs/agent-first-experience.md). Advanced CLI and
+session-scoped MCP integrations remain available below.
+
 ## Try it locally
 
 Install from this repository in a virtual environment:
