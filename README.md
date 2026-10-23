@@ -109,6 +109,7 @@ Follow the [host setup guide](docs/host-setup.md) for Claude Code, Codex and Ant
 
 ## Go deeper
 
+- **Prepare a distribution:** [reproducible preview bundles, SBOM and package rollback](docs/releasing.md). Version 0.8.0 separates this candidate from earlier 0.7.0 packages; bundles remain unsigned developer previews.
 - **Check a setup:** run `stratagent doctor --workspace PATH`; add `--check-files` for bounded managed-output verification. See [health checks and support reports](docs/diagnostics.md) for findings and next steps. The command makes no network calls and never repairs files.
 - **Build a workspace:** [existing-host orchestration](docs/orchestration.md) · [architectural decisions](docs/decision-workflow.md)
 - **Understand discovery:** [GitHub/Registry coverage](docs/discovery.md) · [model-planned runtime research](docs/runtime-research.md)

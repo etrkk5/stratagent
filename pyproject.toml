@@ -1,14 +1,15 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools==84.1.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "stratagent-cli"
-version = "0.7.0"
+version = "0.8.0"
 description = "StratAgent: a platform-agnostic agent workspace architect with reviewed skills and MCP provenance"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 dependencies = ["PyYAML==6.0.3"]
 
 [project.urls]
@@ -19,9 +20,6 @@ Documentation = "https://github.com/etrkk5/stratagent#readme"
 
 [project.scripts]
 stratagent = "stratagent.cli:main"
-
-[tool.setuptools]
-license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
