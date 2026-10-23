@@ -1,7 +1,7 @@
 # Support
 
-For usage and setup, start with the [README](README.md), [host setup](docs/host-setup.md)
-and [offline demo](docs/demo-0.8.0.md). Python 3.11+ and supported local filesystems on
+For usage and setup, start with the [quickstart](docs/quickstart.md), [README](README.md),
+[host setup](docs/host-setup.md) and [offline demo](docs/demo-0.8.0.md). Python 3.11+ and supported local filesystems on
 macOS, Linux and Windows are the current developer-preview scope.
 
 Report non-sensitive bugs or feature requests through

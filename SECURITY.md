@@ -1,13 +1,13 @@
 # Security policy
 
-StratAgent 0.8.x is a developer preview. Security fixes target the latest preview;
+StratAgent 0.9.x is a developer preview. Security fixes target the latest preview;
 older versions have no maintenance commitment. Do not use it as a security sandbox
 or treat a policy pass as proof that third-party instructions or code are safe.
 
 ## Report privately
 
 Use [GitHub private vulnerability reporting](https://github.com/etrkk5/stratagent/security/advisories/new).
-Private reporting was enabled and verified on October 23, 2026. Include the exact
+Private reporting was enabled on October 23 and reverified on October 24, 2026. Include the exact
 version/commit, affected command, a minimal synthetic reproduction and impact.
 Keep real credentials, private prompts, workspaces and raw model logs out of the
 report. Never put sensitive details in a public issue. If the private form becomes
