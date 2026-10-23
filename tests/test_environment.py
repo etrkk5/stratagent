@@ -311,3 +311,14 @@ class EnvironmentTests(unittest.TestCase):
         self.assertFalse(report['complete_within_scope'])
         self.assertFalse(report['files'])
         self.assertEqual(path.read_text(), 'New instructions with a different length.\n')
+
+    def test_long_observed_paths_have_bounded_citable_evidence_ids(self):
+        self.skill('.agents/skills/' + 'x' * 166 + '/SKILL.md')
+        self.service.init(PROMPT, ['generic'])
+        request = self.service.decision_request()
+        observed = request['environment']['files'][0]
+        self.assertTrue(observed['evidence_id'].startswith('environment:sha256:'))
+        self.assertLessEqual(len(observed['evidence_id']), 200)
+        decision = copy.deepcopy(request['suggested_decision'])
+        decision['evidence_refs'] = ['request', observed['evidence_id']]
+        self.service.blueprint(decision)

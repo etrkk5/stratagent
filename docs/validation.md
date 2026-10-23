@@ -8,14 +8,15 @@ ownership, possible overlaps, model-facing evidence and context binding. It is
 not semantic coverage certification, automatic reuse/adoption, task-quality
 improvement or host-runtime validation. Published 0.8.0 remains unchanged.
 
-- **446 tests discovered: 445 pass, one Windows-only junction test skipped** on
+- **447 tests discovered: 446 pass, one Windows-only junction test skipped** on
   macOS/Python 3.14.7, from source and a separately installed wheel outside the
-  checkout with `PYTHONPATH` unset. Nineteen new methods cover actual CLI/MCP
+  checkout with `PYTHONPATH` unset. Twenty new methods cover actual CLI/MCP
   read-only inspection, shared-root deduplication, fixed scan/privacy scope,
   hostile/invalid/sensitive metadata, user-definition changes invalidating research,
   session and staged file approvals, full apply/verify without self-invalidation,
   managed drift/missing files, scan opt-out, unknown ownership, bounds,
-  symlinks/FIFOs and a concurrent read change. Provider/model data are fixtures.
+  symlinks/FIFOs, a concurrent read change and bounded citable IDs for long
+  observed paths. Provider/model data are fixtures.
 - Installed CLI acceptance retains **46 verified demo outputs**; the existing
   15-command update/removal lifecycle retains all four user files, 34 initial
   outputs, seven updated outputs, 27 obsolete removals and four transactions.
@@ -29,7 +30,13 @@ improvement or host-runtime validation. Published 0.8.0 remains unchanged.
 - The packaged skill passes structural validation. Compilation, changed-document
   local links and diff whitespace checks pass. No dependency or new native host
   format was introduced. Earlier field-evaluation waivers remain unchanged.
-  Remote CI/distribution evidence is recorded separately after execution.
+- A clean-commit reproducible developer bundle at `e4aeb82` passes checksum,
+  wheel RECORD and dependency/SBOM inventory verification. The exact new module
+  and skill occur in both source archive and wheel. A real disposable 0.8.0 →
+  0.9.0 offline upgrade/uninstall preserves **57 project/state files** and verifies
+  **46 managed outputs**, without network or host activation. This local unsigned
+  bundle predates the final long-path evidence-ID refinement; native branch CI
+  rebuilds and validates the final head. Remote results are linked from the PR.
 
 ## Unreleased 0.9.0 agent-first experience — October 23, 2026
 

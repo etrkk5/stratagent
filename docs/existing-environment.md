@@ -25,7 +25,8 @@ proposal tools.
 
 Research and decision requests include the observations so the existing model can
 consider current coverage before proposing additions. Local evidence IDs have the
-form `environment:RELATIVE_PATH`. These IDs cite observations, not installable
+form `environment:RELATIVE_PATH` (or `environment:sha256:HASH` for longer paths
+to stay within the existing evidence schema). These IDs cite observations, not installable
 candidate resources. Existing public-query grounding still requires the actual
 user request; local descriptions do not authorize outbound terms or a search.
 

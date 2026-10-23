@@ -162,7 +162,8 @@ def inspect_environment(workspace, *, include_managed=True):
             counts[managed] += 1
             data, mode = _read(workspace, relative, min(MAX_FILE, MAX_BYTES - used[managed]))
             used[managed] += len(data)
-            record = {"path": relative, "kind": kind, "hosts": hosts, "size": len(data), "sha256": digest(data), "mode": mode,
+            reference = "environment:" + relative if len(relative) <= 188 else "environment:sha256:" + digest(relative.encode("utf-8"))
+            record = {"path": relative, "evidence_id": reference, "kind": kind, "hosts": hosts, "size": len(data), "sha256": digest(data), "mode": mode,
                       "ownership": "managed" if managed else "unknown" if ownership_status == "unknown" else "user-owned",
                       "trust": "not-established", "activation": "not-inspected"}
             if managed:
