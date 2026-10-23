@@ -56,8 +56,10 @@ Native host permission/activation differences must remain visible.
 | Portable, reviewed changes | Host contracts, provenance, stage/apply/verify and lifecycle recovery | Portable outputs do not prove equivalent runtime behavior or successful task handoff |
 | Reliability | Source/installed regressions, six-platform CI and disposable upgrade evidence linked in PR #4 | These establish engineering behavior, not outcome quality, retention or acquisition value |
 
-[PR #4](https://github.com/etrkk5/stratagent/pull/4) remains a draft; published
-0.8.0 is unchanged. No new product-quality result is inferred from that PR.
+[PR #4](https://github.com/etrkk5/stratagent/pull/4) merged the agent-first foundation; published
+0.8.0 is unchanged. No task-quality advantage is inferred from that PR. The next
+[bounded inventory increment](existing-environment.md) adds local observations;
+semantic coverage and outcome-quality improvements remain unmeasured.
 
 ## Next implementation order
 
@@ -85,8 +87,10 @@ Native host permission/activation differences must remain visible.
    decisions and source provenance while stating unsupported runtime features.
    Do not transfer private chats or silently promise cross-host memory.
 
-These are planned product increments, not implemented features. Begin with the
-first bounded vertical slice rather than adding all three systems at once.
+The first bounded vertical slice now implements project-local observations,
+possible overlaps and context binding as documented in [existing environment](existing-environment.md).
+Broader semantic reuse/coverage, outcome comparisons and maintenance/handoff
+improvements above remain planned.
 Do not use this direction to justify an autonomous agent-execution service.
 
 ## Measure the benefit, not the amount of machinery

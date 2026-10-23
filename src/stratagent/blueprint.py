@@ -89,6 +89,8 @@ def decision_context(analysis, skills, mcps, targets, research_session=None):
     evidence.extend({"id": "domain:" + entry["domain"], "source": "domain-evidence", "data": entry["evidence"]} for entry in analysis["domain_evidence"])
     evidence.extend({"id": "requirement:" + entry["id"], "source": "scope-evidence", "data": entry} for entry in analysis["requirements"])
     evidence.extend({"id": "manifest:" + entry["path"], "source": "dependency-manifest", "data": entry} for entry in (analysis.get("project") or {}).get("files", []))
+    evidence.extend({"id": "environment:" + entry["path"], "source": "untrusted-local-definition", "data": entry}
+                    for entry in (analysis.get("project") or {}).get("environment", {}).get("files", []))
     evidence.extend({"id": "skill:" + entry["id"], "source": "untrusted-reviewed-metadata", "review_digest": entry["review_digest"]} for entry in skills)
     evidence.extend({"id": "mcp:" + entry["id"], "source": "untrusted-registry-metadata", "review_digest": entry["review_digest"]} for entry in mcps)
     context = {"schema_version": 1, "analysis": analysis, "skills": sorted(skills, key=lambda entry: entry["id"]),

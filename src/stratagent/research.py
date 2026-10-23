@@ -29,6 +29,8 @@ RESEARCH_SCHEMA = {
 def project_context(analysis, targets):
     evidence = [{"id": "request", "text": analysis["prompt"]}]
     evidence.extend({"id": "manifest:" + record["path"], "data": record} for record in (analysis.get("project") or {}).get("files", []))
+    evidence.extend({"id": "environment:" + record["path"], "source": "untrusted-local-definition", "data": record}
+                    for record in (analysis.get("project") or {}).get("environment", {}).get("files", []))
     result = {"schema_version": 1, "analysis": analysis, "targets": targets, "evidence": evidence}
     return {**result, "context_digest": identity(result)}
 

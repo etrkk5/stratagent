@@ -1,5 +1,36 @@
 # Validation
 
+## Unreleased 0.9.0 existing-environment increment — October 23, 2026
+
+[Existing environment](existing-environment.md) adds the first product slice:
+bounded project-local guidance/skill/role observations, user/managed/unknown
+ownership, possible overlaps, model-facing evidence and context binding. It is
+not semantic coverage certification, automatic reuse/adoption, task-quality
+improvement or host-runtime validation. Published 0.8.0 remains unchanged.
+
+- **446 tests discovered: 445 pass, one Windows-only junction test skipped** on
+  macOS/Python 3.14.7, from source and a separately installed wheel outside the
+  checkout with `PYTHONPATH` unset. Nineteen new methods cover actual CLI/MCP
+  read-only inspection, shared-root deduplication, fixed scan/privacy scope,
+  hostile/invalid/sensitive metadata, user-definition changes invalidating research,
+  session and staged file approvals, full apply/verify without self-invalidation,
+  managed drift/missing files, scan opt-out, unknown ownership, bounds,
+  symlinks/FIFOs and a concurrent read change. Provider/model data are fixtures.
+- Installed CLI acceptance retains **46 verified demo outputs**; the existing
+  15-command update/removal lifecycle retains all four user files, 34 initial
+  outputs, seven updated outputs, 27 obsolete removals and four transactions.
+  No provider request, third-party execution or host activation occurs.
+- Existing conflict/recovery expectations now reflect stronger context binding:
+  adding a user definition invalidates the reviewed session before staging, and
+  changed managed observations invalidate an earlier model request ID. The latter
+  test verifies rejection before reloading the request; installed-environment
+  clarification still cannot rewrite scope/files. Default MCP has 15 read-only
+  tools; scoped MCP retains its original two proposal-only tools.
+- The packaged skill passes structural validation. Compilation, changed-document
+  local links and diff whitespace checks pass. No dependency or new native host
+  format was introduced. Earlier field-evaluation waivers remain unchanged.
+  Remote CI/distribution evidence is recorded separately after execution.
+
 ## Unreleased 0.9.0 agent-first experience — October 23, 2026
 
 The selected product priority is natural-language use inside the existing coding

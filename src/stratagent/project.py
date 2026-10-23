@@ -1,4 +1,4 @@
-"""Read bounded project manifests without reading secrets or running commands."""
+"""Bounded dependency and local agent evidence; no execution or secret-file scan."""
 import json
 import os
 import re
@@ -6,6 +6,7 @@ import stat
 import tomllib
 
 from .common import MAX_FILE, StratagentError, digest, identity
+from .environment import inspect_environment
 
 MANIFEST_NAMES = ("package.json", "pyproject.toml", "requirements.txt", "Cargo.toml", "go.mod")
 DEPENDENCIES = {
@@ -103,5 +104,6 @@ def inspect_project(workspace):
         except (OSError, ValueError, TypeError, AttributeError, UnicodeError, RecursionError):
             warnings.append({"path": relative, "reason": "unreadable-or-invalid-manifest"})
     result = {"method": "bounded-manifests-v1", "files": evidence, "signals": signals, "warnings": warnings,
+              "environment": inspect_environment(workspace, include_managed=False)["planning"],
               "limits": {"bytes_per_file": MAX_FILE, "packages_per_directory": 8, "recursive_source_scan": False}}
     return {**result, "fingerprint": identity(result)}

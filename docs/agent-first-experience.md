@@ -93,6 +93,16 @@ It cannot initialize, search, allow repositories, stage/apply, repair or approve
 The session-scoped MCP still exposes only request/submit, with proposal-only writes.
 No mutation tool or permission shortcut is added to either MCP mode.
 
+## Inspect the existing environment
+
+`stratagent environment` and read-only `stratagent_environment` MCP inspect bounded
+project-local guidance, skill/role metadata and recorded ownership before any
+initialization. `next` shows counts/possible overlaps; details and model requests
+carry the observations. User-definition changes invalidate old project/approval
+context; managed outputs remain separate so apply does not invalidate itself.
+No definition is adopted, executed or certified by its presence. See the
+[scope, privacy and context contract](existing-environment.md).
+
 ## Review and completion
 
 The workspace review explains the selected strategy, role responsibilities and

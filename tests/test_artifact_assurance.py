@@ -466,7 +466,7 @@ class AssuranceIntegrationTests(unittest.TestCase):
             self.forge.policy()
 
     def test_default_mcp_has_no_assurance_write_network_approval_or_revoke_tool(self):
-        self.assertEqual(len(TOOLS), 14)
+        self.assertEqual(len(TOOLS), 15)
         self.assertFalse(any("audit" in tool["name"] or "revoke" in tool["name"] for tool in TOOLS))
 
     def test_cli_preview_is_readonly_and_tools_and_revocation_do_not_log_private_data(self):

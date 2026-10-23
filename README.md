@@ -23,6 +23,7 @@ Describe your project → Review the proposed workspace → Approve exact change
 
 ## What makes StratAgent useful?
 
+- **See the existing setup.** Inspect project-local guidance, skill/role metadata, recorded ownership and possible overlaps before proposing additions. Existing files remain under their current ownership; matching names do not prove equivalent capabilities. [Inspection scope](docs/existing-environment.md).
 - **A clear division of work.** Compare focused ownership with specialist roles, including responsibilities, dependencies and acceptance criteria grounded in the project request.
 - **Choices you can inspect.** Research current GitHub and MCP Registry sources. Review relevance, alternatives, source provenance, license/static findings and coverage gaps before selecting resources. Search is bounded; popularity does not establish safety.
 - **Changes you control.** Review the exact file changes, authorize them and verify the installed result. Existing user files, conflicting edits and stale approvals are protected by the apply/update lifecycle.
@@ -156,10 +157,15 @@ more useful result with it, with less setup effort and fewer unnecessary additio
 We want the smallest justified environment for the job. An informed recommendation
 to add nothing should be a successful outcome.
 
-The next product increments are **planned**, beyond the current reviewed setup
+The first step is available in the **unreleased development code**:
+`stratagent environment` inspects existing project-local definitions and feeds
+bounded observations into model research and decision requests. Semantic coverage
+and task-performance improvements remain to be demonstrated.
+
+The product track continues beyond the current inspection, reviewed setup
 and lifecycle capabilities:
 
-- **Understand what is already there.** Inventory project-local agent guidance and skills to explain existing coverage, duplication and genuine gaps before recommending additions.
+- **Build on existing-environment observations.** The bounded inventory is implemented; richer coverage reasoning and avoidance of unnecessary additions are next.
 - **Demonstrate recommendation value.** Connect needs, evidence, existing coverage and alternatives; evaluate task outcomes against the same coding host without StratAgent.
 - **Make ongoing work easier.** Give a concise account of what changed, what still fits and what needs review, with explicit limits when handing work between supported hosts.
 

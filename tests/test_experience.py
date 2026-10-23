@@ -146,7 +146,7 @@ class ExperienceTests(unittest.TestCase):
         (self.root / "requirements.txt").write_text("qdrant-client\n")
         self.assertEqual(guide(self.service)["phase"], "context-changed")
 
-    def test_existing_conflict_blocks_review_and_has_no_stage_suggestion(self):
+    def test_new_user_owned_definition_invalidates_review_and_has_no_stage_suggestion(self):
         self.final()
         card = guide(self.service, details=True)
         output = next(path for path in card["details"]["file_contents"] if path.endswith("SKILL.md"))
@@ -154,7 +154,7 @@ class ExperienceTests(unittest.TestCase):
         self.service.ws.path(output).write_text("Original user-owned instructions.\n")
         before = file_state(self.root)
         blocked = guide(self.service)
-        self.assertEqual(blocked["phase"], "blocked")
+        self.assertEqual(blocked["phase"], "context-changed")
         self.assertNotIn("after_review_argv", blocked["next_action"])
         self.assertEqual(before, file_state(self.root))
 
