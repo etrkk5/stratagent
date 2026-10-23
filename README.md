@@ -109,6 +109,7 @@ Follow the [host setup guide](docs/host-setup.md) for Claude Code, Codex and Ant
 
 ## Go deeper
 
+- **Check a setup:** run `stratagent doctor --workspace PATH`; add `--check-files` for bounded managed-output verification. See [health checks and support reports](docs/diagnostics.md) for findings and next steps. The command makes no network calls and never repairs files.
 - **Build a workspace:** [existing-host orchestration](docs/orchestration.md) · [architectural decisions](docs/decision-workflow.md)
 - **Understand discovery:** [GitHub/Registry coverage](docs/discovery.md) · [model-planned runtime research](docs/runtime-research.md)
 - **Review trust:** [resource policy](docs/resource-assurance.md) · [artifact/tool audits](docs/artifact-assurance.md)

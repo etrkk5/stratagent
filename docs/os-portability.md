@@ -23,6 +23,8 @@ Windows does **not** implement POSIX 0600 privacy through `chmod`. Writable file
 
 ## Inspect and install without shell assumptions
 
+`doctor` now adds offline runtime/workspace health checks and optional `--check-files` output verification. Its original `filesystem` capability fields remain available; it never probes by writing or repairs state. See [diagnostics](diagnostics.md) for structured statuses, privacy and limits.
+
 ```sh
 python -m stratagent doctor --workspace PATH
 python -m stratagent stage blueprint --workspace PATH

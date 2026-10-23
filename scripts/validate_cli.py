@@ -20,7 +20,10 @@ def validate():
                 adapter["contract_schema_version"] != 1 or adapter["host_runtime_certified"]
                 or adapter["scope"] != "inert-file-generation" for adapter in adapters):
             raise RuntimeError("Adapter catalog must be versioned, read-only and explicit about runtime limits.")
-        capabilities = cli(root, "doctor")["filesystem"]
+        health = cli(root, "doctor")
+        capabilities = health["filesystem"]
+        if not health["ok"] or health["writes"] or health["network_calls"]:
+            raise RuntimeError("Offline health check must succeed without mutation or network access.")
         if not capabilities["local_transactions"]:
             raise RuntimeError("CI filesystem backend does not support transactions.")
         cli(root, "plan", "FastAPI and React dashboard with authentication and privacy", "--scan-project")
@@ -33,6 +36,9 @@ def validate():
             selected = installation["adapter_contracts"]
             if selected != [adapter for adapter in adapters if adapter["id"] in installation["platforms"]]:
                 raise RuntimeError("Installed provenance must retain the exact selected adapter contracts.")
+        health = cli(root / "demo", "doctor", "--check-files")
+        if not health["ok"] or not any(check["id"] == "managed-outputs" and check["status"] == "pass" for check in health["checks"]):
+            raise RuntimeError("Installed demo health must include successful managed-output verification.")
         project = root / "blueprint"
         project.mkdir()
         prompt = "Small Python API without payments"
