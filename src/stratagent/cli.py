@@ -19,6 +19,7 @@ def parser():
         "connect": "Preview a first-party project skill so your coding agent can discover StratAgent",
         "start": "Start or continue an agent-guided workspace plan from your project request",
         "next": "Explain the next useful step without searching, installing or changing state",
+        "environment": "Inspect existing project-local agent guidance, skills and ownership without changing files",
         "init": "Analyze a prompt and initialize a workspace (no external code)",
         "prepare": "Turn one project idea into researched skills/MCP choices and a reviewable environment blueprint; never auto-install",
         "research-request": "Export project context and a model-neutral runtime search-plan schema; writes nothing",
@@ -63,7 +64,7 @@ def parser():
         sub = commands.add_parser(name, help=help_text)
         sub.add_argument("--workspace", default=argparse.SUPPRESS, help="Project directory (demo may create it)")
         sub.add_argument("--log-json", action="store_true", default=argparse.SUPPRESS, help="Emit structured events to stderr")
-        if name in ("connect", "start", "next"):
+        if name in ("connect", "start", "next", "environment"):
             sub.add_argument("--json", action="store_true", help="Structured agent response; the default is a concise human view")
         if name in ("start", "connect"):
             sub.add_argument("--platforms", help="Comma-separated host IDs; your agent should select the current host")
@@ -99,9 +100,9 @@ def parser():
             sub.add_argument("key", help="Exact installation key from status")
         if name == "init":
             sub.add_argument("--platforms", default=",".join(DEFAULT_TARGETS), help="Comma-separated adapter IDs; see stratagent platforms")
-            sub.add_argument("--no-scan-project", action="store_true", help="Use only the prompt; skip bounded local manifest inspection")
+            sub.add_argument("--no-scan-project", action="store_true", help="Use only the prompt; skip bounded local manifest and agent-definition inspection")
         if name == "plan":
-            sub.add_argument("--scan-project", action="store_true", help="Include bounded local manifest evidence from --workspace; writes nothing")
+            sub.add_argument("--scan-project", action="store_true", help="Include bounded local manifest and agent-definition evidence from --workspace; writes nothing")
         if name == "prepare":
             sub.add_argument("--platforms", help="Comma-separated adapter IDs; existing workspace selection is preserved by default")
             sub.add_argument("--limit", type=int, default=6, help="Total GitHub definition reviews, 1–20")
@@ -214,10 +215,16 @@ def main(argv=None):
         from .lifecycle import Transactions
         from .assurance import Assurance
 
-        if args.command in ("connect", "start", "next"):
+        if args.command in ("connect", "start", "next", "environment"):
             from .experience import begin, connect, guide, render
             forge = Stratagent(args.workspace)
-            if args.command == "connect":
+            if args.command == "environment":
+                from .environment import render_environment
+                result = forge.environment()
+                print(json.dumps(result, ensure_ascii=True, indent=2, sort_keys=True) if args.json else render_environment(result))
+                event("command.completed", 0)
+                return 0
+            elif args.command == "connect":
                 if args.approve is not None and not args.apply:
                     raise StratagentError("Connection approval requires --apply; preview writes nothing.")
                 result = connect(forge, args.platforms.split(",") if args.platforms is not None else None, args.approve, args.apply)

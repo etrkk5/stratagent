@@ -23,8 +23,9 @@ The user's subsequent ambition is sustained developer/agent preference and
 potential strategic-provider integration. [Product direction](product-direction.md)
 records the differentiated-value hypothesis, current gaps and the next product
 order: reuse the existing environment, explain recommendation quality, then earn
-repeat use through maintenance. These planned increments do not change historical
-P1–P5 evidence or turn adoption/acquisition ambitions into achieved outcomes.
+repeat use through maintenance. The first [bounded inventory increment](existing-environment.md) supplies local
+observations and context binding; semantic coverage and outcome comparison remain
+planned. These increments do not change historical P1–P5 evidence or turn adoption/acquisition ambitions into achieved outcomes.
 
 ## Implementation sequence and exit gates
 

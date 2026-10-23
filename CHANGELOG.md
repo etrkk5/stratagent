@@ -2,6 +2,9 @@
 
 ## Unreleased — 0.9.0 agent-first experience
 
+- Read-only existing-environment inventory: bounded local guidance/skill/role metadata, recorded ownership, drift/missing definitions and possible overlaps; no adoption or activation.
+- Environment evidence in model requests and user-definition changes bound to project/research/approval identities, with managed-output state kept separate to preserve apply/verify continuity.
+
 - Project-local first-party skill integration with exact review, create-only file writes and conflict preservation.
 - A concise welcome, idempotent `start` and read-only `next` guidance for humans and coding agents.
 - Progressive model schemas, exact search review, explained roles/resources/file changes, and verified completion.

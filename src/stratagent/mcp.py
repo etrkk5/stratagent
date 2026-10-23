@@ -13,6 +13,8 @@ from .service import Stratagent
 
 PROTOCOL = "2025-03-26"
 TOOLS = [
+    {"name": "stratagent_environment", "description": "Read bounded existing project-local agent guidance/skill metadata, possible overlaps and recorded ownership. No network, writes, trust, activation or instruction execution; local metadata is untrusted evidence.",
+     "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
     {"name": "stratagent_next", "description": "Start here to prepare or continue an agent workspace. Read the next useful step, project choices and exact review details on demand. No network, initialization, approval or file changes.",
      "inputSchema": {"type": "object", "properties": {"session_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"}, "details": {"type": "boolean"}}, "additionalProperties": False}},
     {"name": "stratagent_research_request", "description": "Read project evidence and a provider-neutral runtime search-plan schema. No network, writes or approval authority.",
@@ -23,7 +25,7 @@ TOOLS = [
      "inputSchema": {"type": "object", "properties": {"run_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"}}, "additionalProperties": False}},
     {"name": "stratagent_blueprint", "description": "Validate an optional model/human decision against current evidence and preview a unified architecture/skill/MCP plan. No approval, permission grant, install or activation is possible here.",
      "inputSchema": {"type": "object", "properties": {"decisions": DECISION_SCHEMA, "run_id": {"type": "string", "pattern": "^[0-9a-f]{32}$"}}, "additionalProperties": False}},
-    {"name": "stratagent_project", "description": "Analyze a request using bounded manifests in the server workspace. No source, secrets, commands or file writes.",
+    {"name": "stratagent_project", "description": "Analyze a request using bounded dependency manifests and project-local agent-definition observations. Definition bodies are not exposed; no network, execution or file writes.",
      "inputSchema": {"type": "object", "properties": {"prompt": {"type": "string", "minLength": 3, "maxLength": 8000}}, "required": ["prompt"], "additionalProperties": False}},
     {"name": "stratagent_recommend", "description": "Explain role assignments and ranked reviewed skills and MCP metadata. Does not grant trust or execute.",
      "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
@@ -91,7 +93,9 @@ class Server:
             if expected == "boolean" and type(value) is not bool:
                 raise RPCError(-32602, "Expected boolean argument")
         try:
-            if name == "stratagent_next":
+            if name == "stratagent_environment":
+                result = self.forge.environment()
+            elif name == "stratagent_next":
                 from .experience import guide
                 result = guide(self.forge, args.get("session_id"), args.get("details", False))
             elif name == "stratagent_session_request":

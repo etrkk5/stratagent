@@ -89,7 +89,12 @@ class PlanningRecoveryTests(unittest.TestCase):
         initial = self.driver.start(PROMPT, ["generic"])
         prepared = self.service.prepare(PROMPT, offline=True)
         self.service.blueprint(approval=prepared["blueprint"]["approval"], apply=True, run_id=prepared["research_run"]["id"])
-        clarified = self.driver.submit(initial["session"]["id"], initial["model_request"]["request_id"],
+        # Managed environment observations changed after the original request.
+        with self.assertRaisesRegex(StratagentError, "Stale or unexpected model request"):
+            self.driver.submit(initial["session"]["id"], initial["model_request"]["request_id"],
+                               {"action": "clarify", "questions": ["Should the project scope change?"]})
+        refreshed = self.driver.request(initial["session"]["id"])
+        clarified = self.driver.submit(initial["session"]["id"], refreshed["model_request"]["request_id"],
                                        {"action": "clarify", "questions": ["Should the project scope change?"]})
         manifest = self.service.manifest()
         with self.assertRaisesRegex(StratagentError, "installed outputs"):
