@@ -1,4 +1,4 @@
-# Agent-first product experience — unreleased 0.9.0
+# Agent-first product experience — 0.9.0 developer preview
 
 ## Product priority
 
@@ -17,8 +17,8 @@ that every host/user has tested or prefers the workflow.
 
 The CLI must already be installed in the intended Python 3.11+ environment. PyPI
 was deferred; do not claim `pip install stratagent-cli` works. Use the repository
-installation from the README or reviewed release artifacts. New commands are in
-the development checkout; the immutable 0.8.0 release is unchanged.
+installation from the README or reviewed release artifacts. The 0.9.0 preview contains
+the new commands; the immutable 0.8.0 release is unchanged.
 
 Ask the coding agent to connect StratAgent to this project. The agent reads:
 

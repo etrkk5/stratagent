@@ -19,12 +19,12 @@ Describe your project → Review the proposed workspace → Approve exact change
 
 **Developer preview · Python 3.11+ · macOS, Linux & Windows · MIT**
 
-[0.8.0 preview release](https://github.com/etrkk5/stratagent/releases/tag/v0.8.0) · [Offline walkthrough](docs/demo-0.8.0.md) · [Support](SUPPORT.md) · [Security](SECURITY.md)
+[0.9.0 preview release](https://github.com/etrkk5/stratagent/releases/tag/v0.9.0) · [Offline walkthrough](docs/demo-0.8.0.md) · [Support](SUPPORT.md) · [Security](SECURITY.md)
 
 ## What makes StratAgent useful?
 
 - **See the existing setup.** Inspect project-local guidance, skill/role metadata, recorded ownership and possible overlaps before proposing additions. Existing files remain under their current ownership; matching names do not prove equivalent capabilities. [Inspection scope](docs/existing-environment.md).
-- **Keep a sufficient setup.** In the unreleased 0.9.0 workflow, your agent assesses needs, existing/host coverage and alternatives before adding tools. You can accept a no-change outcome with no search or new environment files; concrete gaps guide research. [How assessments work](docs/workspace-fit.md).
+- **Keep a sufficient setup.** In the 0.9.0 workflow, your agent assesses needs, existing/host coverage and alternatives before adding tools. You can accept a no-change outcome with no search or new environment files; concrete gaps guide research. [How assessments work](docs/workspace-fit.md).
 - **A clear division of work.** Compare focused ownership with specialist roles, including responsibilities, dependencies and acceptance criteria grounded in the project request.
 - **Choices you can inspect.** Research current GitHub and MCP Registry sources. Review relevance, alternatives, source provenance, license/static findings and coverage gaps before selecting resources. Search is bounded; popularity does not establish safety.
 - **Changes you control.** Review the exact file changes, authorize them and verify the installed result. Existing user files, conflicting edits and stale approvals are protected by the apply/update lifecycle.
@@ -34,8 +34,8 @@ StratAgent prepares the environment; your coding host builds the application. It
 
 ## Work through your coding agent
 
-**Unreleased 0.9.0 development workflow.** The published 0.8.0 preview retains its
-original commands; use a development checkout to try the new agent-first path.
+**0.9.0 developer preview.** Use the versioned installation below for the
+agent-first workflow; the older 0.8.0 preview retains its original commands.
 
 After installing StratAgent locally, tell your existing coding agent:
 
@@ -78,7 +78,7 @@ The first two examples are dependency fixtures, not finished applications. The C
 Install from this repository in a virtual environment:
 
 ```sh
-git clone https://github.com/etrkk5/stratagent.git
+git clone --branch v0.9.0 --depth 1 https://github.com/etrkk5/stratagent.git
 cd stratagent
 python3 -m venv .venv
 source .venv/bin/activate
@@ -86,7 +86,7 @@ python -m pip install -e .
 stratagent --help
 ```
 
-For the published fixed-version preview, clone with `git clone --branch v0.8.0 --depth 1 https://github.com/etrkk5/stratagent.git`. The [release verification/install guide](docs/publishing.md#verify-and-install) covers the application wheel and six native offline bundles with SBOMs. The unreleased agent-first workflow is available in [the 0.9.0 development branch/PR](https://github.com/etrkk5/stratagent/pull/4); the default clone above follows the repository's default branch. No PyPI installation command is advertised until PyPI publication is confirmed.
+The command above selects the fixed 0.9.0 preview. The [release verification/install guide](docs/publishing.md#verify-and-install) also covers the application wheel and six native offline bundles with SBOMs. To contribute to development, clone the default branch instead. PyPI publication is deferred; no PyPI installation command is advertised.
 
 On Windows, use `python` instead of `python3` and activate with `.venv\Scripts\Activate.ps1` in PowerShell. See [OS support and limitations](docs/os-portability.md).
 
@@ -158,7 +158,7 @@ more useful result with it, with less setup effort and fewer unnecessary additio
 We want the smallest justified environment for the job. An informed recommendation
 to add nothing should be a successful outcome.
 
-The **unreleased development code** now inspects the existing environment and
+The **0.9.0 preview** inspects the existing environment and
 supports a grounded needs assessment. Keep a sufficient setup through explicit
 review, or use concrete gaps to guide research and resource choices. Task-performance
 improvements and exhaustive semantic coverage remain to be demonstrated.
@@ -178,7 +178,7 @@ tracks implementation and release readiness separately.
 
 ## Go deeper
 
-- **Prepare a distribution:** [reproducible developer bundles, SBOM and package rollback](docs/releasing.md). For the published 0.8.0 assets and their attestations, follow the [release verification guide](docs/publishing.md#verify-and-install).
+- **Prepare a distribution:** [reproducible developer bundles, SBOM and package rollback](docs/releasing.md). For the 0.9.0 assets and their attestations, follow the [release verification guide](docs/publishing.md#verify-and-install).
 - **Check a setup:** run `stratagent doctor --workspace PATH`; add `--check-files` for bounded managed-output verification. See [health checks and support reports](docs/diagnostics.md) for findings and next steps. The command makes no network calls and never repairs files.
 - **Build a workspace:** [existing-host orchestration](docs/orchestration.md) · [architectural decisions](docs/decision-workflow.md)
 - **Understand discovery:** [GitHub/Registry coverage](docs/discovery.md) · [model-planned runtime research](docs/runtime-research.md)

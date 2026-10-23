@@ -50,14 +50,14 @@ Native host permission/activation differences must remain visible.
 
 | Capability | Evidence | Remaining product gap |
 | --- | --- | --- |
-| Natural-language host entry | Unreleased 0.9.0 first-party skill and connect/start/next in experience.py | Actual new host loading and user preference are not measured |
+| Natural-language host entry | 0.9.0 first-party skill and connect/start/next in experience.py | Actual new host loading and user preference are not measured |
 | Project grounding | project.py inspects bounded dependency manifests; blueprint.py accepts grounded model decisions and exclusions | Not a general source/architecture understanding engine or a complete inventory of existing host capabilities |
 | Current resource research | research/service/orchestration modules bind bounded observations, review and session state | Useful eligible coverage and recommendation advantage are not established by passing tests |
 | Portable, reviewed changes | Host contracts, provenance, stage/apply/verify and lifecycle recovery | Portable outputs do not prove equivalent runtime behavior or successful task handoff |
 | Reliability | Source/installed regressions, six-platform CI and disposable upgrade evidence linked in PR #4 | These establish engineering behavior, not outcome quality, retention or acquisition value |
 
 [PR #4](https://github.com/etrkk5/stratagent/pull/4) merged the agent-first foundation; published
-0.8.0 is unchanged. No task-quality advantage is inferred from that PR. The next
+0.8.0 is unchanged. No task-quality advantage is inferred from that PR. The
 [bounded inventory increment](existing-environment.md) adds local observations;
 semantic coverage and outcome-quality improvements remain unmeasured.
 

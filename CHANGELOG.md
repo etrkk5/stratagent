@@ -1,14 +1,12 @@
 # Changelog
 
-## Unreleased — 0.9.0 agent-first experience
+## 0.9.0 — Developer Preview (October 24, 2026)
 
 - Grounded needs/coverage assessments with explicit keep or research outcomes before adding roles/tools; no-change acceptance installs no environment files and performs no search.
 - Exact operator-only assessment acceptance, current project/environment/ownership binding, existing-output verification and gap explanations carried into research and workspace review.
 - A complete source-install/natural-language quickstart and actual CLI acceptance for the controlled no-addition path.
-
 - Read-only existing-environment inventory: bounded local guidance/skill/role metadata, recorded ownership, drift/missing definitions and possible overlaps; no adoption or activation.
 - Environment evidence in model requests and user-definition changes bound to project/research/approval identities, with managed-output state kept separate to preserve apply/verify continuity.
-
 - Project-local first-party skill integration with exact review, create-only file writes and conflict preservation.
 - A concise welcome, idempotent `start` and read-only `next` guidance for humans and coding agents.
 - Progressive model schemas, exact search review, explained roles/resources/file changes, and verified completion.
@@ -16,6 +14,7 @@
 - A read-only `stratagent_next` MCP entry point. Existing session tools retain their proposal-only scope.
 - Explicit handling of ambiguous sessions, expiry, context drift, output conflicts and transaction recovery.
 
+See [0.9.0 release notes](docs/releases/0.9.0.md) for installation and limitations.
 
 ## 0.8.0 — Developer Preview
 

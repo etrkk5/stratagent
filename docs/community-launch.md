@@ -1,89 +1,81 @@
-# StratAgent 0.8.0 community launch
+# StratAgent 0.9.0 community launch
 
 ## Positioning
 
-**Describe your project. Design its agent workspace. Approve what gets installed.**
+**Give your coding agent a workspace built for your project.**
 
-StratAgent is a local, platform-agnostic agent workspace architect. An existing
-coding host/model helps interpret a project, propose public research and compare
-roles/resources. StratAgent binds that work to reviewed sources, an inspectable
-blueprint and exact authorization before generating workspace files. Provenance,
-drift checks and recoverable updates carry the review forward.
+Use your current coding agent and model. Start by inspecting what the project
+already has, keep a sufficient setup, and propose only justified additions with
+reasons, alternatives and exact file changes. Provenance, drift checks and
+recoverable updates carry that review forward. This is a developer preview;
+packaging and tests do not establish adoption or task-quality superiority.
 
-Lead with the project-to-workspace outcome. Source provenance supports that
-outcome; it is not a claim of guaranteed safety. StratAgent does not build the
-requested application, launch agents or activate MCP servers automatically.
+## English announcement — publish after public-asset verification
 
-## English announcement — publish after the release is visible
+I'm releasing **StratAgent 0.9.0 — Developer Preview**.
 
-I'm releasing **StratAgent 0.8.0 — Developer Preview**: describe your project,
-design its agent workspace, and review exactly what gets installed.
+Describe your project to your existing coding agent. StratAgent helps inspect the
+agent environment already in the repository, explain what is needed and review
+exact changes before installing anything. If the current setup is sufficient,
+you can keep it with no search and no new environment files.
 
-Start with your project's responsibilities, roles, dependencies and exclusions.
-Use your existing coding host/model to research current skill and MCP candidates,
-compare options and produce a reviewable workspace blueprint. StratAgent previews
-the file changes, requires exact approval and records source commits and hashes.
+The new agent-first flow carries commands and session details for you. It supports
+project-local skill integration, grounded needs/coverage assessments and gap-guided
+research, building on ownership-aware updates, drift checks and recovery. No
+additional LLM API key is needed; your coding host supplies the model.
 
-The local CLI includes ownership-aware updates/removal, drift verification,
-transaction recovery and offline health checks. It renders configurations for
-Claude Code, Codex, Antigravity and a generic target; native host coverage varies
-and the setup guide explains those limits. No separate LLM API key is needed for
-the existing-host flow; your host's access and usage limits still apply.
+There are documented output adapters for Claude Code, Codex, Antigravity and a
+generic target. Actual host coverage varies. This preview does not automatically
+launch agents or activate MCP servers, and does not claim certified host behavior
+or measured task-quality gains.
 
-The preview ships with reproducible-build evidence, checksums and Python-distribution
-SBOMs. Its release workflow verifies signed GitHub provenance before publication.
-It remains a developer preview, with no universal safety or host-certification claim.
+Try it in a disposable project. Feedback on unnecessary recommendations, unclear
+choices and setup friction will guide the next changes.
 
-Try the two-minute offline demo, then a disposable project. I'd like feedback on
-role allocation, missing resources and setup friction.
+Release: https://github.com/etrkk5/stratagent/releases/tag/v0.9.0
 
-Release: https://github.com/etrkk5/stratagent/releases/tag/v0.8.0
+Start: https://github.com/etrkk5/stratagent/blob/v0.9.0/docs/quickstart.md
 
-Demo/setup: https://github.com/etrkk5/stratagent#try-it-locally
+## Türkçe duyuru — herkese açık paket doğrulamasından sonra yayımla
 
-## Türkçe duyuru — sürüm görünür olduktan sonra yayımla
+**StratAgent 0.9.0 geliştirici önizlemesini paylaşıyorum.**
 
-**StratAgent 0.8.0 geliştirici önizlemesini paylaşıyorum.** Projeni tarif et,
-ajan çalışma alanını tasarla, kurulacak değişiklikleri inceleyip onayla.
+Projeni mevcut kodlama ajanına tarif et. StratAgent, depodaki ajan ortamını
+incelemeye, neyin gerekli olduğunu açıklamaya ve kurulacak dosya değişikliklerini
+önceden değerlendirmeye yardımcı oluyor. Mevcut kurulum yeterliyse araştırma
+yapmadan ve yeni ortam dosyası eklemeden koruyabiliyorsun.
 
-Başlangıç noktası projenin ihtiyacı: roller, sorumluluklar, bağımlılıklar ve kapsam
-dışında kalacak işler. Mevcut kodlama ortamındaki modelle güncel skill ve MCP
-adaylarını araştırıp seçenekleri karşılaştırabiliyorsun. StratAgent, ortaya çıkan
-planın dosya değişikliklerini gösteriyor; açık onayından sonra uyguluyor ve kaynak
-commit'lerini/dosya özetlerini kaydediyor.
+Yeni akışta komutları ve oturum ayrıntılarını ajan taşıyor; sen ihtiyaçları,
+gerekçeleri, alternatifleri ve değişiklikleri değerlendiriyorsun. Projeye özel
+skill bağlantısı, mevcut ortam değerlendirmesi ve somut eksiklere yönelik araştırma;
+sahiplik takibi, değişiklik kontrolü ve kurtarma akışıyla birlikte çalışıyor.
+Ayrı bir LLM API anahtarı gerekmiyor; mevcut kodlama ortamındaki model kullanılıyor.
 
-Yerel CLI; kullanıcı dosyalarını koruyan güncelleme ve kaldırma, değişiklik kontrolü,
-işlem kurtarma ve çevrimdışı sağlık kontrolü içeriyor. Claude Code, Codex,
-Antigravity ve genel çıktı hedefleri var. Yerel host doğrulaması her ortam için
-aynı düzeyde değil; rehberde sınırlar açık. Mevcut modelinle kullanımda ayrı bir
-LLM API anahtarı gerekmiyor; host hesabının kullanım koşulları geçerli.
+Claude Code, Codex, Antigravity ve genel çıktı hedefleri belgelenmiş durumda.
+Gerçek host kapsamı değişiyor. Bu bir geliştirici önizlemesi; ajanları veya MCP
+sunucularını otomatik başlatmıyor, her ortamda sertifikalı çalışma veya ölçülmüş
+verim artışı iddia etmiyor.
 
-Bu bir geliştirici önizlemesi. Ajanları veya üçüncü taraf MCP sunucularını otomatik
-başlatmıyor; bütün kaynakların güvenli olduğunu iddia etmiyor. Paketlerle birlikte
-derleme kanıtı, bütünlük dosyaları ve Python dağıtım bağımlılık envanteri geliyor.
+İlk denemeyi geçici bir projede yapabilirsin. Gereksiz öneriler, anlaşılmayan
+seçimler ve kurulumdaki pürüzler için geri bildirim arıyorum.
 
-İlk deneme için iki dakikalık çevrimdışı örnek hazır. Rol dağılımının projene
-uygunluğu, eksik kaynaklar ve kurulumdaki zor noktalar için geri bildirim arıyorum.
+Sürüm: https://github.com/etrkk5/stratagent/releases/tag/v0.9.0
 
-Sürüm: https://github.com/etrkk5/stratagent/releases/tag/v0.8.0
+Başlangıç: https://github.com/etrkk5/stratagent/blob/v0.9.0/docs/quickstart.md
 
-Demo/kurulum: https://github.com/etrkk5/stratagent#try-it-locally
+## Sharing sequence
 
-## Demo and sharing sequence
+1. Publish the preview and verify downloaded assets, provenance and installation.
+2. Follow the [quickstart](quickstart.md) in a disposable project. A recorded
+   natural-language demonstration must use an actual new host session; the
+   automated no-addition fixture is synthetic and does not launch a model.
+3. For a reproducible offline example, use the retained
+   [0.8.0 walkthrough](demo-0.8.0.md). Label its date/version and synthetic scope.
+4. Share these drafts on the maintainer's chosen channels only after explicit
+   authorization. This document does not post or send anything. Use
+   [private reporting](../SECURITY.md) for sensitive reports.
 
-1. Make the release visible and verify a downloaded asset's attestation.
-2. Follow the [recorded offline walkthrough](demo-0.8.0.md): preview → explicit
-   apply → 46-output verification → read-only health. Label it a synthetic offline
-   fixture, not live research or a native host recording.
-3. For a model/project video, follow [orchestration](orchestration.md) and
-   [host setup](host-setup.md), recording an actual new session first. Historical
-   [Codex evidence](pilot-validation.md) retains its original date/version.
-4. Share these drafts on the maintainer's chosen channels. This document does not
-   post or send anything. Route sensitive reports to [private reporting](../SECURITY.md).
-
-Keep the developer-preview label. P5 field checks remain waived, not performed.
-Do not claim certified Claude/Antigravity/VS Code runtime support, completed human
-evaluation, adoption, benchmark superiority, autonomous execution or production-grade
-security. `plan` is a disclosed rule-based fallback; existing-host orchestration
-uses the user's model. A website, hosted service and PyPI publication are not
-prerequisites for this GitHub preview.
+Keep the preview label. Waived field checks are not performed/passed. Do not claim
+certified host/VS Code runtime support, completed human evaluation, adoption,
+benchmark superiority or autonomous execution. PyPI remains a separate operation;
+a website or hosted service is not required for this GitHub preview.

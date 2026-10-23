@@ -1,6 +1,6 @@
 # Build and operate a reviewed developer-preview release
 
-Version 0.8.0 adds an offline release bundle with repeat-build evidence, a CycloneDX 1.6 Python-distribution SBOM, file/license inventories and package lifecycle acceptance. It remains a developer preview. The local release helper only builds/verifies; the separate [publication workflow](publishing.md) promotes exact-commit main CI outputs, verifies external GitHub provenance and publishes a GitHub pre-release. It never activates a host or alters a user workspace. PyPI is separately configured and manually dispatched.
+Version 0.9.0 retains the offline release bundle with repeat-build evidence, a CycloneDX 1.6 Python-distribution SBOM, file/license inventories and package lifecycle acceptance. It remains a developer preview. The local release helper only builds/verifies; the separate [publication workflow](publishing.md) promotes exact-commit main CI outputs, verifies external GitHub provenance and publishes a GitHub pre-release. It never activates a host or alters a user workspace. PyPI is separately configured and manually dispatched.
 
 ## Build a candidate
 
@@ -10,8 +10,8 @@ Use a clean, reviewed Git checkout and Python 3.11+. Activate a dedicated build 
 python3 -m venv .build-venv
 .build-venv/bin/python -m pip install --require-hashes -r requirements-build.txt
 .build-venv/bin/python -m pip download --only-binary=:all: --no-deps PyYAML==6.0.3 --dest dist
-.build-venv/bin/python scripts/release.py build --source . --output dist/release-0.8.0 --wheelhouse dist
-.build-venv/bin/python scripts/release.py verify --output dist/release-0.8.0
+.build-venv/bin/python scripts/release.py build --source . --output dist/release-0.9.0 --wheelhouse dist
+.build-venv/bin/python scripts/release.py verify --output dist/release-0.9.0
 ```
 
 On Windows use `python` and `.build-venv\Scripts\python.exe`. The helper itself uses argument arrays and portable filesystem APIs. A local wheelhouse can replace the first two network preparation steps: pass `--no-index --find-links PATH` when installing tooling. The build/verify phase performs no downloads. Keep one platform-appropriate PyYAML 6.0.3 wheel in the selected wheelhouse; ambiguous or incompatible wheels fail.
@@ -24,8 +24,8 @@ The default refuses dirty/untracked source and existing output directories. It n
 
 | File | Purpose |
 | --- | --- |
-| `stratagent_cli-0.8.0-py3-none-any.whl` | Installable application wheel |
-| `stratagent_cli-0.8.0.tar.gz` | Canonical source archive with build inputs/docs/tests |
+| `stratagent_cli-0.9.0-py3-none-any.whl` | Installable application wheel |
+| `stratagent_cli-0.9.0.tar.gz` | Canonical source archive with build inputs/docs/tests |
 | One `pyyaml-6.0.3-…whl` | Exact selected platform/Python runtime dependency |
 | `SHA256SUMS` | Hashes of all other bundle files |
 | `release.json` | Source/artifact evidence, toolchain and all wheel-member/license-file hashes |
@@ -40,8 +40,8 @@ Repeatability is established for the recorded Python/platform/toolchain and sour
 ## Test installation and optional upgrade
 
 ```sh
-python scripts/validate_distribution.py --bundle dist/release-0.8.0
-python scripts/validate_distribution.py --bundle dist/release-0.8.0 --previous-wheel /path/to/reviewed-older-wheel.whl
+python scripts/validate_distribution.py --bundle dist/release-0.9.0
+python scripts/validate_distribution.py --bundle dist/release-0.9.0 --previous-wheel /path/to/reviewed-older-wheel.whl
 ```
 
 The script verifies the bundle, creates a disposable virtual environment, installs offline, exercises the original demo, checks the console version, dependency consistency, `verify` and `doctor --check-files`, then uninstalls the package. Original notes, a synthetic `.env` and all generated workspace state/files must remain byte/mode-identical through package upgrade/uninstall. The optional older artifact is local and explicitly supplied; no older package is fetched or impersonated. This is developer acceptance, not an independent user pilot. CI runs clean install/uninstall; version-to-version upgrade evidence is recorded separately when a real older wheel is available.
@@ -60,7 +60,7 @@ Application package upgrades do not silently migrate or approve workspace change
 
 The six Ubuntu/macOS/Windows × Python 3.11/3.14 jobs now install hash-pinned tooling, retain source/installed tests and original CLI/lifecycle checks, reproduce both distributions, verify the SBOM/RECORD/checksum contract and run disposable install/uninstall acceptance. Checkout, Python setup and artifact-upload actions are pinned to exact upstream commits. Each job uploads its own platform/Python preview bundle for 14 days. A previous commit's green matrix is not evidence for a new artifact. Compare the source commit in its receipt with the workflow's exact commit.
 
-Branch CI artifacts are review candidates. Package publication, a GitHub Release, signing and merging main are separate deliberate actions. Do not silently promote a dirty/local build, ignore a failed platform job or publish a package simply because its version is 0.8.0. Keep the developer-preview label and the [P5 field waivers](interoperability.md) visible.
+Branch CI artifacts are review candidates. Package publication, a GitHub Release, signing and merging main are separate deliberate actions. Do not silently promote a dirty/local build, ignore a failed platform job or publish a package simply because its version is 0.9.0. Keep the developer-preview label and the [P5 field waivers](interoperability.md) visible.
 
 ## Support and incident handling
 

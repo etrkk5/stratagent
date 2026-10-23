@@ -1,14 +1,15 @@
 # Use StratAgent with your coding agent
 
-This guide covers **unreleased 0.9.0 source installations**. The published 0.8.0
-preview retains its original commands. PyPI publication is deferred.
+This guide covers the **0.9.0 developer preview**. The older 0.8.0 preview
+retains its original commands. PyPI publication is deferred. You can also install
+a verified wheel from the [release installation guide](publishing.md#verify-and-install).
 
 ## Install once
 
 Clone the repository and install into its local environment:
 
 ```sh
-git clone https://github.com/etrkk5/stratagent.git
+git clone --branch v0.9.0 --depth 1 https://github.com/etrkk5/stratagent.git
 cd stratagent
 python3 -m venv .venv
 source .venv/bin/activate
@@ -16,7 +17,7 @@ python -m pip install -e .
 stratagent --version
 ```
 
-Use a 0.9.0 source checkout containing the fit workflow. On Windows use
+The tag selects the 0.9.0 source containing the fit workflow. On Windows use
 `python` and `.venv\Scripts\Activate.ps1`; see [OS support](os-portability.md).
 Your coding agent needs access to this installed CLI/environment in the intended
 project. No additional LLM API key is needed; the existing host supplies the model.

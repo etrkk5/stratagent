@@ -1,4 +1,4 @@
-# Existing project environment — unreleased 0.9.0
+# Existing project environment — 0.9.0 developer preview
 
 StratAgent can now inspect project-local agent definitions before proposing an
 addition. This first product increment supplies observations and possible overlaps

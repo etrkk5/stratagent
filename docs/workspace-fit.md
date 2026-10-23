@@ -1,4 +1,4 @@
-# Assess before adding — unreleased 0.9.0
+# Assess before adding — 0.9.0 developer preview
 
 StratAgent can now conclude that the existing setup is enough. The current coding
 host makes a grounded assessment of needs, existing/host coverage, concrete gaps

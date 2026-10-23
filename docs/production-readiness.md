@@ -13,8 +13,8 @@ V1 scope is a local CLI plus a narrowly authorized coding-client integration, wi
 The user prioritized a compelling, simple product experience before further
 announcement/distribution work, selecting natural-language use inside the existing
 IDE/coding agent. [The active UX track](agent-first-experience.md) defines the user
-journey, engineering acceptance and remaining experiential evidence. Unreleased
-0.9.0 adds first-party project skill integration, start/next guidance and useful
+journey, engineering acceptance and remaining experiential evidence. The 0.9.0
+developer preview adds first-party project skill integration, start/next guidance and useful
 review summaries over the existing research/approval/lifecycle engine. A packaged
 workflow is not evidence that every agent/user prefers it; native discovery and
 real usefulness remain distinct. The published 0.8.0 artifacts are preserved.
