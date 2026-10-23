@@ -24,7 +24,15 @@ release is unchanged; 0.9.0 is not published or on PyPI.
   checked for the generated paths. Tests use controlled provider/model fixtures;
   no new native-host loading, human preference or independent-user result is
   claimed. Previously waived field checks remain waived, not fabricated passes.
-  Remote CI and distribution-upgrade outcomes are recorded separately when run.
+- A clean-commit developer bundle at `ad2c833` reproduces two identical source
+  archives/wheels under the pinned offline toolchain. Checksums, wheel RECORDs,
+  dependency closure and SBOM inventories pass; both the source archive and wheel
+  contain the exact validated first-party skill. The unsigned bundle is local
+  developer evidence, not a new release or publisher attestation.
+- Actual disposable **0.8.0 → 0.9.0** offline upgrade/uninstall acceptance passes:
+  **46 managed outputs** verify, **57 project/state files** retain their bytes and
+  modes, and package removal leaves the project intact. No host activation or
+  provider call occurs. Remote CI results are recorded separately when run.
 
 ## 0.8.0 publication and launch preparation — October 23, 2026
 
