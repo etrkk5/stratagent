@@ -67,6 +67,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$RELEASE_TAG" -f "sha=$GITHUB_SHA" > created-tag.json
           gh release create "$RELEASE_TAG" upload/* --target "$GITHUB_SHA" --title "StratAgent $RELEASE_TAG — Developer Preview" --notes-file "docs/releases/${RELEASE_TAG#v}.md" --draft --prerelease
           TAG_SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" --jq 'select(.object.type == "commit") | .object.sha')
           [[ "$TAG_SHA" == "$GITHUB_SHA" ]]

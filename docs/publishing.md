@@ -13,8 +13,11 @@
    ZIPs. The canonical Ubuntu/Python 3.11 wheel/source archive are exposed separately.
 4. GitHub OIDC/Sigstore provenance covers all assets, including manifest/checksums.
    Before upload, verification requires this repository, `release.yml`, main,
-   the exact source digest and a GitHub-hosted runner. The workflow creates a
-   draft, downloads it, checks exact bytes/files again, then publishes a **pre-release**.
+   the exact source digest and a GitHub-hosted runner. It explicitly creates a new
+   lightweight tag at that commit before creating the draft (GitHub may defer tag
+   creation for drafts). An existing tag fails without modification. The workflow
+   downloads the draft, compares it byte-for-byte with the attested originals,
+   checks exact files/hashes again, then publishes a **pre-release**.
 5. Verify a downloaded public asset, check support/private reporting, then use the
    [announcement drafts](community-launch.md). PyPI is a separate operation.
 
