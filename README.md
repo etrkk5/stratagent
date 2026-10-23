@@ -2,41 +2,33 @@
 
 [![Tests](https://github.com/etrkk5/stratagent/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/etrkk5/stratagent/actions/workflows/tests.yml)
 
-**Describe your project. Design its agent workspace. Approve what gets installed.**
+**Give your coding agent a workspace built for your project.**
 
-StratAgent is a **platform-agnostic AI agent workspace architect**. It turns your project idea and local dependency evidence into an architecture, agent/subagent responsibilities, reviewed Agent Skills and MCP server proposals—not just a list of packages.
+Describe what you want to build. StratAgent helps your coding agent turn that request into clear responsibilities, relevant skills and reviewed tool proposals. See why each choice fits, what is missing and exactly which files will change before you approve them.
 
-Use the model and coding environment you already have: **Claude Code, Codex, Antigravity, or a generic export**. No additional LLM API key required.
+Work inside **Claude Code, Codex or Antigravity**, using the model you already have. No additional LLM API key is required. A generic export is available for other integrations; supported outputs and host limitations are documented below.
+
+StratAgent is a **provider-independent agent workspace architect**: it connects your project request and local dependency evidence with current resource research, then turns the reviewed plan into portable workspace files you can verify, update and remove.
 
 > “Build a React dashboard with a Python API and PostgreSQL. Include testing and privacy review. No payments.”
 
 ```text
-Your idea → Architecture & roles → Live resource discovery → Source review
-         → Your approval → Workspace files → Verify / update / remove
+Describe your project → Review the proposed workspace → Approve exact changes
+                      → Verify and maintain the setup
 ```
 
 **Developer preview · Python 3.11+ · macOS, Linux & Windows · MIT**
 
 [0.8.0 preview release](https://github.com/etrkk5/stratagent/releases/tag/v0.8.0) · [Offline walkthrough](docs/demo-0.8.0.md) · [Support](SUPPORT.md) · [Security](SECURITY.md)
 
-## Why use StratAgent?
+## What makes StratAgent useful?
 
-- **Start with the project, not the catalog.** Compare focused vs. specialist ownership, task dependencies and acceptance criteria before choosing tools.
-- **Discover at runtime.** Search GitHub across skill, agent/subagent and MCP-related repositories, including star-sorted results; use the official MCP Registry for server metadata. Research is bounded, not an exhaustive crawl or a frozen built-in catalog.
-- **Understand each choice.** Inspect relevance, alternatives, source commits, license/static findings and coverage gaps. Popularity helps discovery; it never proves safety.
-- **Keep the workspace portable.** One reviewed blueprint, host-specific outputs, a provenance lockfile and repeatable setup. Update or remove only managed files, with drift checks and recovery.
+- **A clear division of work.** Compare focused ownership with specialist roles, including responsibilities, dependencies and acceptance criteria grounded in the project request.
+- **Choices you can inspect.** Research current GitHub and MCP Registry sources. Review relevance, alternatives, source provenance, license/static findings and coverage gaps before selecting resources. Search is bounded; popularity does not establish safety.
+- **Changes you control.** Review the exact file changes, authorize them and verify the installed result. Existing user files, conflicting edits and stale approvals are protected by the apply/update lifecycle.
+- **A setup you can maintain.** Keep one reviewed plan with host-specific outputs and recorded provenance. Update or remove managed files with drift checks and recovery as the project evolves.
 
 StratAgent prepares the environment; your coding host builds the application. It does not autonomously launch agents or install and run arbitrary GitHub code.
-
-## Put it to work
-
-| Your project idea | What to review in its workspace plan | Example |
-| --- | --- | --- |
-| React/Next.js frontend + FastAPI/PostgreSQL API | Frontend/API ownership, interface coordination, testing and relevant skill/MCP candidates | [SaaS manifest fixtures](examples/projects/saas) |
-| A pandas data-review pipeline | Data-quality, testing and privacy responsibilities; offline constraints and resource gaps | [Data project fixture](examples/projects/data-review) |
-| A small offline CSV inventory checker, without a web UI | Focused ownership and test review, without unnecessary web/payment tooling | [Runnable project + walkthrough](examples/projects/inventory-review/README.md) |
-
-The first two examples are dependency fixtures, not finished applications. The CSV example includes working code and a [recorded Codex pilot](docs/pilot-validation.md).
 
 ## Work through your coding agent
 
@@ -49,19 +41,35 @@ After installing StratAgent locally, tell your existing coding agent:
 > useful resources and file changes before applying anything. Keep my current
 > files and excluded features intact.
 
+Your part is simple:
+
+1. **Describe the outcome and constraints.** Explain the project, what matters and what to leave out.
+2. **Review the meaningful choices.** See responsibilities, resource reasons, missing evidence, public search terms and the proposed file changes.
+3. **Approve and check the result.** Authorize the exact changes; the agent applies them and checks the installed files.
+
+The agent carries the commands, JSON proposals, session IDs and approval digests.
+Existing session progress is reused; conflicts, stale context and interrupted
+changes are explained instead of silently resetting your work.
+
 For one-time project integration, the agent previews `stratagent connect --json`,
 reviews the packaged first-party skill and applies its exact connection approval.
-Only local skill files are added; no host settings, permissions or MCP servers are
-automatically enabled. A host refresh/new session may be needed for discovery.
-
-The agent uses `start` and `next --json`, requesting detailed schemas or full diffs
-only when needed. You describe the project, answer material questions, review
-public search terms and approve exact changes. The agent carries the session IDs,
-JSON proposals and approval digests. Existing work is reused and verified;
-conflicts, stale context and interrupted changes are explained rather than reset.
+Only local skill files are added; host settings, permissions and MCP servers need
+separate activation. A host refresh/new session may be needed for discovery.
+The agent then follows `start` and `next --json`, loading detailed schemas or
+full diffs when the current step needs them.
 
 [Agent-first workflow and limits](docs/agent-first-experience.md). Advanced CLI and
 session-scoped MCP integrations remain available below.
+
+## Put it to work
+
+| Your project idea | What to review in its workspace plan | Example |
+| --- | --- | --- |
+| React/Next.js frontend + FastAPI/PostgreSQL API | Frontend/API ownership, interface coordination, testing and relevant skill/MCP candidates | [SaaS manifest fixtures](examples/projects/saas) |
+| A pandas data-review pipeline | Data-quality, testing and privacy responsibilities; offline constraints and resource gaps | [Data project fixture](examples/projects/data-review) |
+| A small offline CSV inventory checker, without a web UI | Focused ownership and test review, without unnecessary web/payment tooling | [Runnable project + walkthrough](examples/projects/inventory-review/README.md) |
+
+The first two examples are dependency fixtures, not finished applications. The CSV example includes working code and a [recorded Codex pilot](docs/pilot-validation.md).
 
 ## Try it locally
 
@@ -76,7 +84,7 @@ python -m pip install -e .
 stratagent --help
 ```
 
-For fixed-version installation after the preview tag is published, clone with `git clone --branch v0.8.0 --depth 1 https://github.com/etrkk5/stratagent.git`. The [release verification/install guide](docs/publishing.md#verify-and-install) covers the application wheel and six native offline bundles with SBOMs. No PyPI installation command is advertised until PyPI publication is confirmed.
+For the published fixed-version preview, clone with `git clone --branch v0.8.0 --depth 1 https://github.com/etrkk5/stratagent.git`. The [release verification/install guide](docs/publishing.md#verify-and-install) covers the application wheel and six native offline bundles with SBOMs. The unreleased agent-first workflow is available in [the 0.9.0 development branch/PR](https://github.com/etrkk5/stratagent/pull/4); the default clone above follows the repository's default branch. No PyPI installation command is advertised until PyPI publication is confirmed.
 
 On Windows, use `python` instead of `python3` and activate with `.venv\Scripts\Activate.ps1` in PowerShell. See [OS support and limitations](docs/os-portability.md).
 
@@ -92,6 +100,9 @@ stratagent verify --workspace ./demo-workspace/applied
 `plan` is a read-only, disclosed rule-based preview. The offline demo uses original synthetic fixtures: inspect its preview, then explicitly apply generated skill/role files and inert MCP proposals in a separate directory. Use fresh demo directories on repeat runs. It does not download third-party content or execute agents.
 
 ## From your idea to a reviewed environment
+
+<details>
+<summary>Advanced: wire the model bridge and run the review/apply steps manually</summary>
 
 Start a model-assisted session in an existing project directory; use a disposable copy first:
 
@@ -115,6 +126,8 @@ IDs and hashes above are placeholders from your own command results. Use the sam
 
 Follow the [complete model → research → review walkthrough](docs/orchestration.md) for host setup and exact commands. Prefer a simpler CLI entry point? [`prepare`](docs/discovery.md) performs live discovery with a disclosed rule-based draft unless you supply a model/human proposal; it never silently applies the environment.
 
+</details>
+
 ## Portable by design, cautious by default
 
 | Target | Current output |
@@ -136,9 +149,29 @@ Use `stratagent platforms` to inspect versioned adapter capabilities. These rend
 
 Follow the [host setup guide](docs/host-setup.md) for Claude Code, Codex and Antigravity skill/role locations and scoped local MCP bridge configurations. Claude's reserved local skill names are mapped to portable exports with an `sa-` prefix; original source evidence remains unchanged.
 
+## Where we are taking StratAgent
+
+Our goal is to make StratAgent worth returning to: a coding agent should produce a
+more useful result with it, with less setup effort and fewer unnecessary additions.
+We want the smallest justified environment for the job. An informed recommendation
+to add nothing should be a successful outcome.
+
+The next product increments are **planned**, beyond the current reviewed setup
+and lifecycle capabilities:
+
+- **Understand what is already there.** Inventory project-local agent guidance and skills to explain existing coverage, duplication and genuine gaps before recommending additions.
+- **Demonstrate recommendation value.** Connect needs, evidence, existing coverage and alternatives; evaluate task outcomes against the same coding host without StratAgent.
+- **Make ongoing work easier.** Give a concise account of what changed, what still fits and what needs review, with explicit limits when handing work between supported hosts.
+
+We will judge progress by useful outcomes, setup effort, unnecessary recommendations
+and voluntary repeat use. Broad user preference, task-performance gains and seamless
+cross-host handoff have not been established. The [product direction](docs/product-direction.md)
+records the strategy and evidence gaps; the [engineering plan](docs/production-readiness.md)
+tracks implementation and release readiness separately.
+
 ## Go deeper
 
-- **Prepare a distribution:** [reproducible preview bundles, SBOM and package rollback](docs/releasing.md). Version 0.8.0 separates this candidate from earlier 0.7.0 packages; bundles remain unsigned developer previews.
+- **Prepare a distribution:** [reproducible developer bundles, SBOM and package rollback](docs/releasing.md). For the published 0.8.0 assets and their attestations, follow the [release verification guide](docs/publishing.md#verify-and-install).
 - **Check a setup:** run `stratagent doctor --workspace PATH`; add `--check-files` for bounded managed-output verification. See [health checks and support reports](docs/diagnostics.md) for findings and next steps. The command makes no network calls and never repairs files.
 - **Build a workspace:** [existing-host orchestration](docs/orchestration.md) · [architectural decisions](docs/decision-workflow.md)
 - **Understand discovery:** [GitHub/Registry coverage](docs/discovery.md) · [model-planned runtime research](docs/runtime-research.md)
