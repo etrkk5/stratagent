@@ -19,6 +19,13 @@ review summaries over the existing research/approval/lifecycle engine. A package
 workflow is not evidence that every agent/user prefers it; native discovery and
 real usefulness remain distinct. The published 0.8.0 artifacts are preserved.
 
+The user's subsequent ambition is sustained developer/agent preference and
+potential strategic-provider integration. [Product direction](product-direction.md)
+records the differentiated-value hypothesis, current gaps and the next product
+order: reuse the existing environment, explain recommendation quality, then earn
+repeat use through maintenance. These planned increments do not change historical
+P1–P5 evidence or turn adoption/acquisition ambitions into achieved outcomes.
+
 ## Implementation sequence and exit gates
 
 | Phase | Required implementation | Exit evidence | Status |
