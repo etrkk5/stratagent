@@ -1,10 +1,11 @@
 """Trusted, pure host adapters; no runtime plugin loading or installation."""
 import json
+import re
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Callable
 
-from .common import StratagentError, canonical
+from .common import StratagentError, canonical, digest
 
 
 @dataclass(frozen=True)
@@ -14,6 +15,11 @@ class HostAdapter:
     agent_root: str | None = None
     agent_header: str = ""
     mcp_renderer: Callable[[str, dict], tuple[str, bytes]] | None = None
+    contract_version: str = "1.0.0"
+    reserved_skill_names: tuple[str, ...] = ()
+
+    def skill_name(self, name):
+        return "sa-" + name if name.casefold() in self.reserved_skill_names else name
 
     def role_path(self, name):
         if self.agent_root is not None:
@@ -29,6 +35,19 @@ class HostAdapter:
                 "role_format": "native-agent" if self.agent_root is not None else "portable-skill",
                 "role_root": self.agent_root or self.skill_root, "mcp_proposals": self.mcp_renderer is not None,
                 "automatic_execution": False}
+
+    def contract(self):
+        """Declare renderer behavior, separately from native host validation."""
+        if not isinstance(self.contract_version, str) or not re.fullmatch(
+                r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", self.contract_version):
+            raise StratagentError("Adapter contract version must use major.minor.patch.")
+        return {**self.capabilities(), "contract_schema_version": 1,
+                "adapter_version": self.contract_version, "scope": "inert-file-generation",
+                "reserved_skill_names": list(self.reserved_skill_names), "reserved_name_prefix": "sa-",
+                "role_header_sha256": digest(self.agent_header.encode()),
+                "native_multi_agent_orchestration": False, "host_runtime_certified": False,
+                "permission_enforcement": "host-controlled; generated headers are not a sandbox",
+                "mcp_activation": "manual-only" if self.mcp_renderer is not None else "unsupported"}
 
 
 def claude_mcp(name, selected):
@@ -53,7 +72,8 @@ def antigravity_mcp(name, selected):
 
 
 ADAPTERS = MappingProxyType({adapter.name: adapter for adapter in (
-    HostAdapter("claude", ".claude/skills", ".claude/agents", "tools: Read, Grep, Glob\npermissionMode: plan\n", claude_mcp),
+    HostAdapter("claude", ".claude/skills", ".claude/agents", "tools: Read, Grep, Glob\npermissionMode: plan\n", claude_mcp,
+                contract_version="1.1.0", reserved_skill_names=("synced", "anthropic-skills")),
     HostAdapter("codex", ".agents/skills", mcp_renderer=codex_mcp),
     HostAdapter("antigravity", ".agents/skills", ".agents/agents",
                 'tools: [view_file, grep_search]\nmainAgent: false\nsubagent: true\nmodel: inherit\ncommandExecutionPolicy: "off"\n', antigravity_mcp),
@@ -74,9 +94,14 @@ def get_adapter(name):
 
 
 def catalog():
-    return {"schema_version": 1, "platforms": [ADAPTERS[name].capabilities() for name in sorted(ADAPTERS)],
+    return {"schema_version": 1, "platforms": contracts(list(ADAPTERS)),
             "defaults": list(DEFAULT_TARGETS),
             "note": "Generic exports portable Agent Skills and a task plan; host-specific MCP settings require a supported adapter. No external adapters are loaded automatically."}
+
+
+def contracts(targets):
+    """A stable, selected-target snapshot for exact-plan approval/lock records."""
+    return [get_adapter(target).contract() for target in platforms(targets)]
 
 
 def resource_paths(outputs, targets):

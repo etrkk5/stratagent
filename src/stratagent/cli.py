@@ -6,16 +6,7 @@ import time
 
 from . import __version__
 from .common import StratagentError
-from .demo import demo
 from .hosts import DEFAULT_TARGETS, catalog
-from .mcp import serve
-from .orchestration import Orchestrator
-from .planner import analyze
-from .project import inspect_project
-from .service import Stratagent
-from .workspace import Workspace
-from .lifecycle import Transactions
-from .assurance import Assurance
 
 
 def parser():
@@ -39,7 +30,7 @@ def parser():
         "session-answer": "Answer model questions with a complete revised prompt before installation; invalidates old context/approvals",
         "plan": "Analyze a prompt without writing files",
         "platforms": "List adapter capabilities and portable export support without reading a workspace",
-        "doctor": "Report local OS/filesystem capabilities without writes, network or credentials",
+        "doctor": "Check local runtime and workspace health without writes, network or private report contents",
         "decision-request": "Export grounded context and a provider-independent architectural decision schema",
         "blueprint": "Review or approve one plan for architecture, selected skills and inert MCP proposals",
         "discover": "Find pinned GitHub definitions and cache review evidence",
@@ -69,6 +60,8 @@ def parser():
         sub = commands.add_parser(name, help=help_text)
         sub.add_argument("--workspace", default=argparse.SUPPRESS, help="Project directory (demo may create it)")
         sub.add_argument("--log-json", action="store_true", default=argparse.SUPPRESS, help="Emit structured events to stderr")
+        if name == "doctor":
+            sub.add_argument("--check-files", action="store_true", help="Also verify managed hashes/modes, up to 16 MiB total; never repair")
         if name in ("init", "plan", "prepare", "research-request", "research-preview", "session-start", "revise"):
             sub.add_argument("prompt")
         if name == "revise":
@@ -176,14 +169,26 @@ def main(argv=None):
 
     event("command.started")
     try:
+        if args.command == "doctor":
+            from .diagnostics import diagnose
+            result = diagnose(args.workspace, args.check_files)
+            exit_code = 0 if result["ok"] else 2
+            print(json.dumps(result, ensure_ascii=True, indent=2, sort_keys=True))
+            event("command.completed", exit_code)
+            return exit_code
+
+        from .demo import demo
+        from .mcp import serve
+        from .orchestration import Orchestrator
+        from .planner import analyze
+        from .project import inspect_project
+        from .service import Stratagent
+        from .workspace import Workspace
+        from .lifecycle import Transactions
+        from .assurance import Assurance
+
         if args.command == "platforms":
             result = catalog()
-        elif args.command == "doctor":
-            workspace = Workspace(args.workspace)
-            result = {"tool": "StratAgent", "version": __version__, "filesystem": workspace.fs.capabilities(),
-                      "scope": "local-filesystem-process-recovery", "production_ready": False,
-                      "notes": ["Filesystem capabilities are not release certification. See docs/production-readiness.md.",
-                                "Windows uses inherited ACLs; place private state in a restricted user-owned directory."]}
         elif args.command == "plan":
             result = analyze(args.prompt, inspect_project(Workspace(args.workspace)) if args.scan_project else None)
         elif args.command == "demo":
@@ -299,6 +304,10 @@ def main(argv=None):
             exit_code = 4
         event("command.completed", exit_code)
         return exit_code
+    except ImportError:
+        print(json.dumps({"error": "Runtime modules could not load. Run stratagent doctor in the same virtual environment."}), file=sys.stderr)
+        event("command.failed", 2)
+        return 2
     except StratagentError as exc:
         print(json.dumps({"error": str(exc)}, ensure_ascii=True), file=sys.stderr)
         event("command.failed", 2)

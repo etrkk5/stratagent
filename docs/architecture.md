@@ -60,7 +60,11 @@ Version 0.4.1 adds model-proposed clarification questions and CLI-only revised p
 
 ## Host adapter contract
 
+`diagnostics.py` is an offline, read-only operational boundary. The CLI dispatches `doctor` before importing YAML-dependent services, so a missing dependency can be diagnosed. Fixed messages/actions omit private paths/content and exceptions; selected metadata is bounded and checked for changes. Hash/mode verification is opt-in and budgeted. The report takes no mutation lock, creates no files and does not attest resource/host safety. See [diagnostics.md](diagnostics.md).
+
 `hosts.py` is the trusted integration boundary. Each frozen `HostAdapter` specifies a stable ID, skill root, optional native-agent root/header, and optional pure MCP proposal renderer. Its capability description distinguishes native role definitions from portable role skills and reports whether host-specific MCP proposals exist. The built-in catalog is immutable during normal execution. `stratagent platforms` exposes it without requiring a workspace.
+
+Versioned contracts bind selected adapter capabilities, role-header hashes and reserved-skill naming policy into previews, approvals and lock provenance. The host adapter maps any reserved skill name before common rendering; path and emitted metadata use the same mapped name, retaining references and collision refusal. Claude 1.1.0 handles `synced` and `anthropic-skills`; the neutral core contains no vendor-name exception. [Host setup](host-setup.md) records official format references; [P5 acceptance](interoperability.md) records the user's explicit field-test waiver separately from observed evidence.
 
 `adapters.py` renders common skill/task content using this contract. `registry.py` reviews common MCP source metadata and delegates only host serialization. `service.py` obtains approved resource references through adapter ownership rather than recognizing vendor paths. The planner, shared primitives, application service and Registry client contain no host-name or host-directory conditionals. The canonical project analysis is identical for different target selections; role instructions, permissions and MCP field names belong to the adapter boundary.
 
