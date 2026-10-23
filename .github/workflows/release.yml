@@ -1,0 +1,76 @@
+name: preview-release
+on:
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: Successful main push run of tests.yml at this exact commit
+        required: true
+        type: string
+      tag:
+        description: Preview tag matching pyproject.toml
+        required: true
+        default: v0.8.0
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: preview-release
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+      id-token: write
+      attestations: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CI_RUN_ID: ${{ inputs.ci_run_id }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.11'
+      - name: Validate selection and obtain completed CI evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$CI_RUN_ID" =~ ^[1-9][0-9]*$ ]]
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo 'Release already exists; retain it and inspect recovery instructions.' >&2
+            exit 1
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN_ID" > ci-run.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN_ID/jobs?per_page=100" > ci-jobs.json
+          gh run download "$CI_RUN_ID" --dir downloaded
+          python scripts/publish_preview.py prepare --input downloaded --output upload --ci-report ci-run.json --ci-jobs ci-jobs.json --tag "$RELEASE_TAG" --source-sha "$GITHUB_SHA"
+      - name: Attest the exact release assets
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: upload/*
+      - name: Verify workflow identity, source commit and every asset
+        shell: bash
+        run: |
+          set -euo pipefail
+          for artifact in upload/*; do
+            gh attestation verify "$artifact" --repo "$GITHUB_REPOSITORY" --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" --source-ref refs/heads/main --source-digest "$GITHUB_SHA" --deny-self-hosted-runners
+          done
+          python scripts/publish_preview.py verify --input upload --tag "$RELEASE_TAG" --source-sha "$GITHUB_SHA"
+      - name: Create draft, recheck uploaded bytes, then publish preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create "$RELEASE_TAG" upload/* --target "$GITHUB_SHA" --title "StratAgent $RELEASE_TAG — Developer Preview" --notes-file "docs/releases/${RELEASE_TAG#v}.md" --draft --prerelease
+          TAG_SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" --jq 'select(.object.type == "commit") | .object.sha')
+          [[ "$TAG_SHA" == "$GITHUB_SHA" ]]
+          gh release download "$RELEASE_TAG" --dir downloaded-release
+          python scripts/publish_preview.py verify --input downloaded-release --tag "$RELEASE_TAG" --source-sha "$GITHUB_SHA"
+          diff --recursive upload downloaded-release
+          gh release edit "$RELEASE_TAG" --draft=false --prerelease

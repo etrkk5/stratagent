@@ -1,0 +1,36 @@
+name: declared-dependency-audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 8 * * 1'
+  pull_request:
+    paths:
+      - pyproject.toml
+      - requirements-build.txt
+      - scripts/audit_dependencies.py
+      - .github/workflows/dependency-audit.yml
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.11'
+      - name: Query OSV for public declared pins; fail on findings or outage
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/audit_dependencies.py | tee dependency-audit.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: declared-dependency-audit
+          path: dependency-audit.json
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,31 @@
+name: Bug report
+description: Report a reproducible, non-sensitive problem
+title: '[Bug] '
+body:
+  - type: markdown
+    attributes:
+      value: 'Do not upload private prompts, .stratagent state, backups or credentials. Report security issues privately: https://github.com/etrkk5/stratagent/security/advisories/new'
+  - type: input
+    id: environment
+    attributes:
+      label: StratAgent, Python and OS versions
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal synthetic reproduction
+      description: Commands and invented example inputs, with private paths removed
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Reviewed diagnostic check IDs and error messages
+      description: Inspect and redact before sharing; do not attach raw session logs

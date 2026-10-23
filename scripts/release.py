@@ -28,7 +28,7 @@ LIMIT = 64 * 1024 * 1024
 MAX_FILES = 2000
 TOOLS = {"setuptools": "84.1.0", "wheel": "0.48.0", "packaging": "26.3"}
 ROOT_FILES = {"pyproject.toml", "requirements-build.txt", "MANIFEST.in", "README.md", "LICENSE",
-              "THIRD_PARTY_NOTICES.md", ".gitignore", ".gitattributes"}
+              "THIRD_PARTY_NOTICES.md", "SECURITY.md", "SUPPORT.md", "CHANGELOG.md", ".gitignore", ".gitattributes"}
 ROOT_DIRS = {"src", "tests", "scripts", "docs", "examples", ".github"}
 
 
