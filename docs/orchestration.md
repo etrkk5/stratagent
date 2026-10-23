@@ -6,6 +6,8 @@ The host model actually proposes the queries and architecture. StratAgent valida
 
 ## Start and attach your host
 
+For official-documentation-based Claude Code/Codex/Antigravity paths, scoped stdio snippets and activation differences, see [host-setup.md](host-setup.md). These instructions do not claim a native session was performed.
+
 Use an existing disposable project directory. `session-start` initializes StratAgent state when necessary, but never overwrites an existing request or changes its selected targets. Neither startup nor model proposals make network calls.
 
 ```sh

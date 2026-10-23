@@ -9,7 +9,7 @@ from .adapters import platforms, render_bundle, render_tasks
 from .blueprint import DECISION_SCHEMA, decision_context, interpret
 from .common import StratagentError, canonical, digest, identity, repository
 from .github import GitHub, GitHubLimitError, SEEDS
-from .hosts import DEFAULT_TARGETS, get_adapter, merge_outputs, resource_paths
+from .hosts import DEFAULT_TARGETS, contracts, get_adapter, merge_outputs, resource_paths
 from .planner import analyze
 from .planner import words
 from .preparation import prepare
@@ -435,6 +435,7 @@ class Stratagent:
         outputs = [{"path": p, "sha256": digest(d), "size": len(d)} for p, d in sorted(files.items())]
         payload = {"schema_version": 1, "workspace": str(self.ws.root), "generator_version": __version__,
                    "platforms": platforms(self.manifest()["platforms"]),
+                   "adapter_contracts": contracts(self.manifest()["platforms"]),
                    "source": source, "origin": origin, "review_digest": review_digest, "outputs": outputs,
                    "policy_findings": restrictions({**source, "review_digest": review_digest}, self.policy()) if source.get("kind") != "removal" else [],
                    "lifecycle": Transactions(self.ws).preview(key, files, self._lifecycle_context(), source.get("kind") == "removal")}
@@ -509,7 +510,7 @@ class Stratagent:
                 mismatches = self.verify()["mismatches"]
                 if mismatches:
                     raise StratagentError("Installed files changed; verify reports drift. Refusing to overwrite.")
-                if all(previous.get(field) == plan.get(field) for field in ("source", "review_digest", "platforms", "generator_version")) and [{name: output[name] for name in ("path", "sha256", "size")} for output in previous["outputs"]] == plan["outputs"]:
+                if all(previous.get(field) == plan.get(field) for field in ("source", "review_digest", "platforms", "generator_version", "adapter_contracts")) and [{name: output[name] for name in ("path", "sha256", "size")} for output in previous["outputs"]] == plan["outputs"]:
                     return {"applied": False, "already_installed": True, "approval": approval}
         if not isinstance(approval, str) or not hmac.compare_digest(approval, plan["approval"]):
             raise StratagentError("Approval digest does not match this exact plan. Run dry-run, review, and approve that digest.")

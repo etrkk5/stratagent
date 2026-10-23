@@ -33,7 +33,7 @@ def render_bundle(candidate, files, targets):
         else:
             root = adapter.skill_root
             # Unique directory/name pair avoids collisions with user-authored skills.
-            skill_name = name if candidate["kind"] == "skill" else slug
+            skill_name = adapter.skill_name(name) if candidate["kind"] == "skill" else slug
             dest = f"{root}/{skill_name}"
             if candidate["kind"] == "subagent":
                 rendered[f"{dest}/SKILL.md"] = frontmatter(slug, "Delegated role: " + meta["description"][:990], body)
@@ -42,7 +42,7 @@ def render_bundle(candidate, files, targets):
                 for path, data in files.items():
                     p = PurePosixPath(path)
                     if entry.parent in p.parents:
-                        rendered[f"{dest}/{p.relative_to(entry.parent)}"] = frontmatter(name, meta["description"], body, compatibility=meta.get("compatibility")) if p == entry else data
+                        rendered[f"{dest}/{p.relative_to(entry.parent)}"] = frontmatter(skill_name, meta["description"], body, compatibility=meta.get("compatibility")) if p == entry else data
             notice_root = dest + "/stratagent-notices"
         for path, data in files.items():
             if PurePosixPath(path).name.lower() in NOTICE_NAMES:

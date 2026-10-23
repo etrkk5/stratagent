@@ -101,7 +101,11 @@ Follow the [complete model → research → review walkthrough](docs/orchestrati
 - **MCP stays inactive:** server proposals never overwrite active host settings or launch packages. Optional npm artifact/tool audits are separate from Registry metadata review, not permission to execute.
 - **No silent changes:** approvals bind exact content and outputs; identical setup verifies/no-ops, while collisions, drift and stale/partial research block application. Keep local project state private.
 
-This is a working developer preview, **not a production/GA release**. Native lifecycle CI covers macOS/Linux/Windows on Python 3.11 and 3.14; broader host interoperability and human-reviewed usefulness remain [release gates](docs/release-readiness.md).
+This is a working developer preview, **not a production/GA release**. Native lifecycle CI covers macOS/Linux/Windows on Python 3.11 and 3.14. Host formats are reviewed against official documentation; broader native-host and human-usefulness checks are explicitly waived for the current scope, with their evidence limits recorded in [release readiness](docs/release-readiness.md).
+
+Use `stratagent platforms` to inspect versioned adapter capabilities. These renderer contracts are included in exact-plan approvals and installation provenance; they describe generated files, while actual host/version validation is tracked separately in the [interoperability matrix](docs/interoperability.md).
+
+Follow the [host setup guide](docs/host-setup.md) for Claude Code, Codex and Antigravity skill/role locations and scoped local MCP bridge configurations. Claude's reserved local skill names are mapped to portable exports with an `sa-` prefix; original source evidence remains unchanged.
 
 ## Go deeper
 
