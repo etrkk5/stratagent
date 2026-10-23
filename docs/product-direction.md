@@ -89,8 +89,10 @@ semantic coverage and outcome-quality improvements remain unmeasured.
 
 The first bounded vertical slice now implements project-local observations,
 possible overlaps and context binding as documented in [existing environment](existing-environment.md).
-Broader semantic reuse/coverage, outcome comparisons and maintenance/handoff
-improvements above remain planned.
+The [workspace-fit increment](workspace-fit.md) adds grounded needs/coverage and
+alternative assessments, a reviewed no-addition outcome and gap-guided research.
+These model judgments are not measured task-quality improvements. Broader semantic
+deduplication, outcome comparisons and maintenance/handoff improvements remain planned.
 Do not use this direction to justify an autonomous agent-execution service.
 
 ## Measure the benefit, not the amount of machinery

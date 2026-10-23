@@ -2,6 +2,10 @@
 
 ## Unreleased — 0.9.0 agent-first experience
 
+- Grounded needs/coverage assessments with explicit keep or research outcomes before adding roles/tools; no-change acceptance installs no environment files and performs no search.
+- Exact operator-only assessment acceptance, current project/environment/ownership binding, existing-output verification and gap explanations carried into research and workspace review.
+- A complete source-install/natural-language quickstart and actual CLI acceptance for the controlled no-addition path.
+
 - Read-only existing-environment inventory: bounded local guidance/skill/role metadata, recorded ownership, drift/missing definitions and possible overlaps; no adoption or activation.
 - Environment evidence in model requests and user-definition changes bound to project/research/approval identities, with managed-output state kept separate to preserve apply/verify continuity.
 

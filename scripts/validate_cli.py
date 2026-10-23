@@ -7,8 +7,9 @@ import tempfile
 
 
 def validate():
-    def cli(root, *arguments):
-        result = subprocess.run([sys.executable, "-m", "stratagent", "--workspace", str(root), *arguments], capture_output=True, text=True, timeout=30)
+    def cli(root, *arguments, proposal=None):
+        result = subprocess.run([sys.executable, "-m", "stratagent", "--workspace", str(root), *arguments],
+                                input=json.dumps(proposal) if proposal is not None else None, capture_output=True, text=True, timeout=30)
         if result.returncode:
             raise RuntimeError(f"CLI smoke {arguments[0]} failed: {result.stderr[:1000]}")
         return json.loads(result.stdout)
@@ -50,7 +51,37 @@ def validate():
         started = cli(project, "session-start", prompt, "--platforms", "generic", "--model-turns", "2", "--search-rounds", "1", "--network-requests", "1", "--seconds", "60")
         if started["session"]["state"] != "research-needed":
             raise RuntimeError("Bounded session smoke did not pause for model input.")
-        return {"ok": True, "filesystem": capabilities, "demo_outputs": verified["checked"], "network_calls": 0, "activation": "none"}
+        # Original controlled assessment fixture; no host model is launched.
+        minimal = root / "keep-existing"
+        definition = minimal / ".agents/skills/api-testing/SKILL.md"
+        definition.parent.mkdir(parents=True)
+        original = b'---\nname: api-testing\ndescription: Python API testing and regression review.\n---\nKeep this user-owned skill.\n'
+        definition.write_bytes(original)
+        card = cli(minimal, "start", "Build a Python API with tests. No payments.", "--platforms", "codex", "--json")
+        details = cli(minimal, "next", "--details", "--json")
+        request = details["details"]["model_request"]
+        fit = request["fit_request"]
+        reference = fit["environment"]["files"][0]["evidence_id"]
+        proposal = {"schema_version": 1, "context_digest": fit["context_digest"], "environment_digest": fit["environment_digest"],
+                    "outcome": "keep", "reason": "The current host and observed test skill cover this fixture's needs without additional extensions.",
+                    "needs": [{"need": "Test the Python API", "quote": "Python API with tests", "status": "existing",
+                               "reason": "The existing project-local testing definition is sufficient for this controlled review fixture.",
+                               "evidence_refs": ["request", reference], "existing": [reference]}],
+                    "alternatives": ["Research another testing resource only if a concrete coverage gap appears."]}
+        cli(minimal, "session-submit", card["session_id"], "--request-id", request["request_id"], "--response-stdin",
+            proposal={"action": "assess", "assessment": proposal})
+        review = cli(minimal, "next", "--json")
+        cli(minimal, "session-accept-fit", card["session_id"], "--approve", review["fit_review"]["approval"])
+        kept = cli(minimal, "next", "--json")
+        status = cli(minimal, "session-status", card["session_id"])
+        generated = [p for p in minimal.rglob("*") if p.is_file() and ".stratagent" not in p.relative_to(minimal).parts]
+        if (kept["phase"] != "kept" or definition.read_bytes() != original or generated != [definition]
+                or status["session"]["usage"] != {"model_turns": 1, "search_rounds": 0, "network_reserved": 0}
+                or cli(minimal, "verify")["checked"] != 0):
+            raise RuntimeError("No-change assessment must retain the fixture without installing files or performing searches.")
+        return {"ok": True, "filesystem": capabilities, "demo_outputs": verified["checked"], "network_calls": 0, "activation": "none",
+                "fit": {"outcome": "keep", "synthetic_assessment": True, "model_proposals": 1, "search_rounds": 0,
+                        "new_environment_files": 0, "preserved_user_files": 1}}
 
 
 if __name__ == "__main__":

@@ -1,5 +1,39 @@
 # Validation
 
+## Unreleased 0.9.0 workspace-fit usability increment — October 23, 2026
+
+[Fit assessments](workspace-fit.md) let the host explain actual needs, existing/host
+coverage, gaps and alternatives, then propose keep or research. An operator-only
+no-change acceptance retains the existing setup; gaps are carried into research,
+comparison and workspace review. [Quickstart](quickstart.md) covers source install,
+first-party connection and English/Turkish natural-language use. Inventory PR #5
+is merged; this increment does not publish a new release or change PyPI status.
+
+- **465 tests discovered: 464 pass, one Windows-only junction test skipped** from
+  source and an independently installed wheel outside the checkout with
+  `PYTHONPATH` unset, macOS/Python 3.14.7. Eighteen new fit methods cover EN/TR
+  grounding, current/cross-host local references, scoped MCP proposal/CLI
+  acceptance, exact session approvals, no-change idempotence, private user-file
+  preservation, malformed/partial metadata, changed context/ownership, managed
+  non-definition drift, expiry/cancel/resume budgets, scan opt-out and the full
+  gap → search → compare → stage/apply/verify route. Provider/model data are
+  controlled fixtures; semantic quality is not established by schema validation.
+- Actual installed CLI acceptance adds a synthetic no-change proposal through
+  subprocess start/request/stdin-submit/review/operator-accept/next. It measures
+  **one proposal, zero search rounds, zero new environment files and one preserved
+  user file**. Session/planning metadata is saved. No model is launched and this
+  is not a human-preference result. Original demo acceptance retains **46 verified
+  outputs**; the separate 15-command update/removal lifecycle still preserves
+  four original user files/settings with four transactions.
+- The new keep outcome grants no installation, activation, trust, credential or
+  execution authority. Default MCP remains 15 read-only tools and scoped MCP
+  remains two proposal-only tools. Model-only host coverage is labelled judgment;
+  operator acceptance is not proof of actual host loading or completed app work.
+- Compilation, packaged-skill structural validation and local Markdown links pass.
+  Runtime dependencies and native host formats are unchanged. Previously waived
+  field evaluations remain waived. Final native CI/distribution results are linked
+  from the feature PR; published 0.8.0 remains untouched.
+
 ## Unreleased 0.9.0 existing-environment increment — October 23, 2026
 
 [Existing environment](existing-environment.md) adds the first product slice:

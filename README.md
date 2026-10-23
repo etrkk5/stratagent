@@ -24,6 +24,7 @@ Describe your project → Review the proposed workspace → Approve exact change
 ## What makes StratAgent useful?
 
 - **See the existing setup.** Inspect project-local guidance, skill/role metadata, recorded ownership and possible overlaps before proposing additions. Existing files remain under their current ownership; matching names do not prove equivalent capabilities. [Inspection scope](docs/existing-environment.md).
+- **Keep a sufficient setup.** In the unreleased 0.9.0 workflow, your agent assesses needs, existing/host coverage and alternatives before adding tools. You can accept a no-change outcome with no search or new environment files; concrete gaps guide research. [How assessments work](docs/workspace-fit.md).
 - **A clear division of work.** Compare focused ownership with specialist roles, including responsibilities, dependencies and acceptance criteria grounded in the project request.
 - **Choices you can inspect.** Research current GitHub and MCP Registry sources. Review relevance, alternatives, source provenance, license/static findings and coverage gaps before selecting resources. Search is bounded; popularity does not establish safety.
 - **Changes you control.** Review the exact file changes, authorize them and verify the installed result. Existing user files, conflicting edits and stale approvals are protected by the apply/update lifecycle.
@@ -42,11 +43,11 @@ After installing StratAgent locally, tell your existing coding agent:
 > useful resources and file changes before applying anything. Keep my current
 > files and excluded features intact.
 
-Your part is simple:
+[Start-to-finish setup guide](docs/quickstart.md). Your part is simple:
 
 1. **Describe the outcome and constraints.** Explain the project, what matters and what to leave out.
-2. **Review the meaningful choices.** See responsibilities, resource reasons, missing evidence, public search terms and the proposed file changes.
-3. **Approve and check the result.** Authorize the exact changes; the agent applies them and checks the installed files.
+2. **Review the meaningful choices.** See whether the existing setup is enough. Review needs, coverage, alternatives and gaps; public search terms and file changes follow only when needed.
+3. **Keep or change the setup.** Accept the reviewed no-change assessment, or authorize exact file changes and have the agent verify the installed result.
 
 The agent carries the commands, JSON proposals, session IDs and approval digests.
 Existing session progress is reused; conflicts, stale context and interrupted
@@ -157,16 +158,16 @@ more useful result with it, with less setup effort and fewer unnecessary additio
 We want the smallest justified environment for the job. An informed recommendation
 to add nothing should be a successful outcome.
 
-The first step is available in the **unreleased development code**:
-`stratagent environment` inspects existing project-local definitions and feeds
-bounded observations into model research and decision requests. Semantic coverage
-and task-performance improvements remain to be demonstrated.
+The **unreleased development code** now inspects the existing environment and
+supports a grounded needs assessment. Keep a sufficient setup through explicit
+review, or use concrete gaps to guide research and resource choices. Task-performance
+improvements and exhaustive semantic coverage remain to be demonstrated.
 
 The product track continues beyond the current inspection, reviewed setup
 and lifecycle capabilities:
 
-- **Build on existing-environment observations.** The bounded inventory is implemented; richer coverage reasoning and avoidance of unnecessary additions are next.
-- **Demonstrate recommendation value.** Connect needs, evidence, existing coverage and alternatives; evaluate task outcomes against the same coding host without StratAgent.
+- **Build on existing-environment observations.** Bounded inventory and reviewed keep/research assessments are implemented; broader semantic deduplication remains further work.
+- **Demonstrate recommendation value.** Needs, evidence, coverage and alternatives now have a structured review path; evaluate actual task outcomes against the same coding host without StratAgent.
 - **Make ongoing work easier.** Give a concise account of what changed, what still fits and what needs review, with explicit limits when handing work between supported hosts.
 
 We will judge progress by useful outcomes, setup effort, unnecessary recommendations
