@@ -68,6 +68,9 @@ jobs:
         run: |
           set -euo pipefail
           gh release create "$RELEASE_TAG" upload/* --target "$GITHUB_SHA" --title "StratAgent $RELEASE_TAG — Developer Preview" --notes-file "docs/releases/${RELEASE_TAG#v}.md" --draft --prerelease
+          TAG_SHA=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" --jq 'select(.object.type == "commit") | .object.sha')
+          [[ "$TAG_SHA" == "$GITHUB_SHA" ]]
           gh release download "$RELEASE_TAG" --dir downloaded-release
           python scripts/publish_preview.py verify --input downloaded-release --tag "$RELEASE_TAG" --source-sha "$GITHUB_SHA"
+          diff --recursive upload downloaded-release
           gh release edit "$RELEASE_TAG" --draft=false --prerelease
