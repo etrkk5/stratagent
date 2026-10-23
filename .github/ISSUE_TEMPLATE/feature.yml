@@ -1,0 +1,16 @@
+name: Feature or compatibility request
+description: Explain a concrete workflow or supported-format gap
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What project/workflow are you trying to support?
+      description: Use a public or synthetic example; omit private project details
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Desired behavior and host/version, if relevant
+    validations:
+      required: true

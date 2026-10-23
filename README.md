@@ -17,6 +17,8 @@ Your idea → Architecture & roles → Live resource discovery → Source review
 
 **Developer preview · Python 3.11+ · macOS, Linux & Windows · MIT**
 
+[0.8.0 preview release](https://github.com/etrkk5/stratagent/releases/tag/v0.8.0) · [Offline walkthrough](docs/demo-0.8.0.md) · [Support](SUPPORT.md) · [Security](SECURITY.md)
+
 ## Why use StratAgent?
 
 - **Start with the project, not the catalog.** Compare focused vs. specialist ownership, task dependencies and acceptance criteria before choosing tools.
@@ -48,6 +50,8 @@ source .venv/bin/activate
 python -m pip install -e .
 stratagent --help
 ```
+
+For fixed-version installation after the preview tag is published, clone with `git clone --branch v0.8.0 --depth 1 https://github.com/etrkk5/stratagent.git`. The [release verification/install guide](docs/publishing.md#verify-and-install) covers the application wheel and six native offline bundles with SBOMs. No PyPI installation command is advertised until PyPI publication is confirmed.
 
 On Windows, use `python` instead of `python3` and activate with `.venv\Scripts\Activate.ps1` in PowerShell. See [OS support and limitations](docs/os-portability.md).
 

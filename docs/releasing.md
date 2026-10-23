@@ -1,6 +1,6 @@
 # Build and operate a reviewed developer-preview release
 
-Version 0.8.0 adds an offline release bundle with repeat-build evidence, a CycloneDX 1.6 Python-distribution SBOM, file/license inventories and package lifecycle acceptance. It remains a developer preview. The release helper never publishes to PyPI, creates a GitHub Release, signs an artifact, activates a host or alters a user workspace.
+Version 0.8.0 adds an offline release bundle with repeat-build evidence, a CycloneDX 1.6 Python-distribution SBOM, file/license inventories and package lifecycle acceptance. It remains a developer preview. The local release helper only builds/verifies; the separate [publication workflow](publishing.md) promotes exact-commit main CI outputs, verifies external GitHub provenance and publishes a GitHub pre-release. It never activates a host or alters a user workspace. PyPI is separately configured and manually dispatched.
 
 ## Build a candidate
 
@@ -35,7 +35,7 @@ Verification requires the exact file set, checksum agreement, complete wheel `RE
 
 The SBOM is explicitly **distribution-level**. It does not claim a complete inventory of native libraries embedded in PyYAML's extension, the OS, build-tool vendoring or runtime-downloaded resources. A file inventory includes binary bytes but is not native dependency analysis. No current vulnerability-free or safe-code assertion follows from hashes, registry names or an empty advisory query.
 
-Repeatability is established for the recorded Python/platform/toolchain and source snapshot. It is not a cross-platform byte-equality or hermetic/signed-build claim. Checksums plus receipts prove local consistency, not publisher identity: all bundles currently state `signed: false`. A trusted signature/attestation process and private security intake remain operational release work; no credentials or signing identities are fabricated.
+Repeatability is established for the recorded Python/platform/toolchain and source snapshot. It is not a cross-platform byte-equality or hermetic/signed-build claim. Checksums plus receipts prove local consistency, not publisher identity: all bundles currently state `signed: false`. The separate [publisher](publishing.md) adds and verifies external GitHub OIDC/Sigstore provenance over the public release assets; inner receipts remain unsigned local consistency records. [Private security intake](../SECURITY.md) is configured on GitHub. No personal signing identity or credential is fabricated.
 
 ## Test installation and optional upgrade
 
@@ -68,6 +68,6 @@ Use [doctor](diagnostics.md) for a minimal local report. For a non-sensitive bug
 
 For a suspected compromised resource, stop host activation/bridge use, preserve private evidence and inspect the exact source/installed impact using `security-status`. Use explicit local revocation where appropriate; do not claim revocation removes already-read instructions or undoes external effects. For a distribution incident, retain its hashes, pause further promotion and use the reviewed package rollback path above. Credential exposure must be handled through the credential issuer's actual revocation process.
 
-No private intake address or response SLA is configured in this repository. Sensitive reports require a maintainer-provided private channel; do not invent one or place secrets in a public issue. Continuous advisory monitoring and staffed incident response are not implemented by this build tooling.
+Use the verified [GitHub private reporting channel](../SECURITY.md#report-privately) for sensitive reports. No email address or response SLA is invented. A scheduled read-only OSV audit checks four declared runtime/build pins and fails on findings/outage; maintainers must monitor and triage workflow notifications. It does not cover vendored/native/transitive closure, change dependencies or provide staffed incident response.
 
 References checked October 23, 2026: [PyPA build strategy/reproducibility](https://build.pypa.io/en/latest/explanation/how-it-works.html), [SOURCE_DATE_EPOCH](https://reproducible-builds.org/specs/source-date-epoch/), [setuptools project/license configuration](https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html), [CycloneDX 1.6 schema](https://cyclonedx.org/schema/bom-1.6.schema.json).

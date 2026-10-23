@@ -1,47 +1,89 @@
-# StratAgent: community positioning
+# StratAgent 0.8.0 community launch
 
-## Core positioning
+## Positioning
 
-**A reviewable supply chain for agent skills.**
+**Describe your project. Design its agent workspace. Approve what gets installed.**
 
-StratAgent treats reusable agent instructions as software dependencies. It connects discovery, source inspection, explicit approval and portable workspace configuration through a verifiable record of what was installed.
+StratAgent is a local, platform-agnostic agent workspace architect. An existing
+coding host/model helps interpret a project, propose public research and compare
+roles/resources. StratAgent binds that work to reviewed sources, an inspectable
+blueprint and exact authorization before generating workspace files. Provenance,
+drift checks and recoverable updates carry the review forward.
 
-The product's technical center is the approval boundary: source commits, file contents, destination paths and rendered outputs are bound into one deterministic installation plan. This is the main idea to lead with when introducing the project.
+Lead with the project-to-workspace outcome. Source provenance supports that
+outcome; it is not a claim of guaranteed safety. StratAgent does not build the
+requested application, launch agents or activate MCP servers automatically.
 
-## Short repository description
+## English announcement — publish after the release is visible
 
-CLI-first agent workspace assembly: discover GitHub skills and sub-agents, review provenance and policy findings, and generate approved Claude Code/Codex configurations with pinned commits, exact-hash approval and a lockfile.
+I'm releasing **StratAgent 0.8.0 — Developer Preview**: describe your project,
+design its agent workspace, and review exactly what gets installed.
 
-## Project introduction
+Start with your project's responsibilities, roles, dependencies and exclusions.
+Use your existing coding host/model to research current skill and MCP candidates,
+compare options and produce a reviewable workspace blueprint. StratAgent previews
+the file changes, requires exact approval and records source commits and hashes.
 
-StratAgent is a CLI-first toolkit for assembling agent workspaces from GitHub skills and sub-agent definitions. It ranks candidates using transparent relevance, documentation, security and license signals, then turns approved resources into portable configurations for Claude Code, Codex and Agent Skills-compatible environments. Every skill installation is bound to an immutable source commit and an exact approval digest, with file hashes and provenance recorded in a lockfile. A read-only MCP server makes discovery and inspection available to coding agents while keeping installation authority in the local CLI. Version 0.2 adds local project evidence, specialist role planning and official MCP Registry metadata review with inert host proposals.
+The local CLI includes ownership-aware updates/removal, drift verification,
+transaction recovery and offline health checks. It renders configurations for
+Claude Code, Codex, Antigravity and a generic target; native host coverage varies
+and the setup guide explains those limits. No separate LLM API key is needed for
+the existing-host flow; your host's access and usage limits still apply.
 
-## Community launch post
+The preview ships with reproducible-build evidence, checksums and Python-distribution
+SBOMs. Its release workflow verifies signed GitHub provenance before publication.
+It remains a developer preview, with no universal safety or host-certification claim.
 
-**Agent dependencies deserve a lockfile.**
+Try the two-minute offline demo, then a disposable project. I'd like feedback on
+role allocation, missing resources and setup friction.
 
-I'm building **StratAgent**, a CLI-first toolkit for assembling agent workspaces from reusable skills and sub-agent definitions.
+Release: https://github.com/etrkk5/stratagent/releases/tag/v0.8.0
 
-The workflow starts with a project request and produces an inspectable task plan. StratAgent then discovers relevant definitions on GitHub, evaluates their documentation structure, security signals and licenses, and previews exactly what would be installed for Claude Code or Codex.
+Demo/setup: https://github.com/etrkk5/stratagent#try-it-locally
 
-The part I care most about is making each installation reviewable:
+## Türkçe duyuru — sürüm görünür olduktan sonra yayımla
 
-- Immutable source commits and verified Git blobs.
-- Repository allowlists plus approval of the exact installation plan.
-- SHA-256 hashes for source files and generated outputs.
-- A provenance lockfile and a command to detect content drift.
-- A read-only MCP surface that preserves the CLI's installation boundary.
+**StratAgent 0.8.0 geliştirici önizlemesini paylaşıyorum.** Projeni tarif et,
+ajan çalışma alanını tasarla, kurulacak değişiklikleri inceleyip onayla.
 
-The working Python preview uses pinned PyYAML for bounded metadata parsing, includes an offline demo and has an offline regression suite. See `docs/validation.md` for exact results and commit-specific CI evidence. The [resource assurance contract](resource-assurance.md) lists unsupported executable content and remaining release gates.
+Başlangıç noktası projenin ihtiyacı: roller, sorumluluklar, bağımlılıklar ve kapsam
+dışında kalacak işler. Mevcut kodlama ortamındaki modelle güncel skill ve MCP
+adaylarını araştırıp seçenekleri karşılaştırabiliyorsun. StratAgent, ortaya çıkan
+planın dosya değişikliklerini gösteriyor; açık onayından sonra uyguluyor ve kaynak
+commit'lerini/dosya özetlerini kaydediyor.
 
-Planning is currently deterministic, imports are restricted to documentation bundles, and coding-agent processes are not launched automatically. Those boundaries are explicit so the current behavior is easy to inspect.
+Yerel CLI; kullanıcı dosyalarını koruyan güncelleme ve kaldırma, değişiklik kontrolü,
+işlem kurtarma ve çevrimdışı sağlık kontrolü içeriyor. Claude Code, Codex,
+Antigravity ve genel çıktı hedefleri var. Yerel host doğrulaması her ortam için
+aynı düzeyde değil; rehberde sınırlar açık. Mevcut modelinle kullanımda ayrı bir
+LLM API anahtarı gerekmiyor; host hesabının kullanım koşulları geçerli.
 
-I'd value feedback from skill authors and developers maintaining agent workflows, especially on provenance, license edge cases and portability between coding environments.
+Bu bir geliştirici önizlemesi. Ajanları veya üçüncü taraf MCP sunucularını otomatik
+başlatmıyor; bütün kaynakların güvenli olduğunu iddia etmiyor. Paketlerle birlikte
+derleme kanıtı, bütünlük dosyaları ve Python dağıtım bağımlılık envanteri geliyor.
 
-## Technical discussion angle
+İlk deneme için iki dakikalık çevrimdışı örnek hazır. Rol dağılımının projene
+uygunluğu, eksik kaynaklar ve kurulumdaki zor noktalar için geri bildirim arıyorum.
 
-The interesting question is how to make reused agent instructions auditable throughout workspace assembly. StratAgent answers this with content-bound approvals, a conservative import policy, pure platform renderers and a shared service layer exposed through the CLI and read-only MCP. Future semantic planning and runtime delegation can be added behind these same approval boundaries.
+Sürüm: https://github.com/etrkk5/stratagent/releases/tag/v0.8.0
 
-## Editorial rules
+Demo/kurulum: https://github.com/etrkk5/stratagent#try-it-locally
 
-Lead with the installation model and show a reproducible demo. State that quality/security scores are transparent heuristics. Use real validation results. Avoid claims of autonomous execution, production-grade security, guaranteed safety, semantic planning, market leadership or adoption until there is evidence for them. Use a repository link only after a public repository actually exists.
+## Demo and sharing sequence
+
+1. Make the release visible and verify a downloaded asset's attestation.
+2. Follow the [recorded offline walkthrough](demo-0.8.0.md): preview → explicit
+   apply → 46-output verification → read-only health. Label it a synthetic offline
+   fixture, not live research or a native host recording.
+3. For a model/project video, follow [orchestration](orchestration.md) and
+   [host setup](host-setup.md), recording an actual new session first. Historical
+   [Codex evidence](pilot-validation.md) retains its original date/version.
+4. Share these drafts on the maintainer's chosen channels. This document does not
+   post or send anything. Route sensitive reports to [private reporting](../SECURITY.md).
+
+Keep the developer-preview label. P5 field checks remain waived, not performed.
+Do not claim certified Claude/Antigravity/VS Code runtime support, completed human
+evaluation, adoption, benchmark superiority, autonomous execution or production-grade
+security. `plan` is a disclosed rule-based fallback; existing-host orchestration
+uses the user's model. A website, hosted service and PyPI publication are not
+prerequisites for this GitHub preview.
